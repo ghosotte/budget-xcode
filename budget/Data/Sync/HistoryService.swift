@@ -62,18 +62,21 @@ enum HistoryService {
         var decimalAvg: Decimal { Decimal(string: avg) ?? 0 }
     }
 
+    private static let dateFormatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withFullDate]
+        return f
+    }()
+
     static func fetchOverview(
         tab: String,
         from: Date?,
         to: Date? = nil,
         categories: [Int] = []
     ) async throws -> Overview {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withFullDate]
-
         var query: [String: String] = ["tab": tab]
-        if let from { query["from"] = formatter.string(from: from) }
-        if let to { query["to"] = formatter.string(from: to) }
+        if let from { query["from"] = dateFormatter.string(from: from) }
+        if let to { query["to"] = dateFormatter.string(from: to) }
         if !categories.isEmpty {
             query["category_ids"] = categories.map(String.init).joined(separator: ",")
         }

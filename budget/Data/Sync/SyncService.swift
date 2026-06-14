@@ -498,18 +498,10 @@ enum SyncService {
     }
 
     private static func parseDate(_ raw: String) -> Date? {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = .current
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.date(from: raw)
+        MonthMath.parseDate(raw)
     }
 
     private static func parseMonth(_ raw: String) -> Date? {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = .current
-        formatter.dateFormat = "yyyy-MM"
-        return formatter.date(from: raw)
+        MonthMath.parseMonth(raw)
     }
 }

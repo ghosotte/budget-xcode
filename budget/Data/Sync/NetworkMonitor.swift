@@ -8,11 +8,10 @@ final class NetworkMonitor {
     static let shared = NetworkMonitor()
 
     private(set) var isOnline: Bool = true
+    private(set) var lastReconnectAt: Date?
 
     private let monitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "budget.networkmonitor")
-    private var wasOffline = false
-    private var onReconnect: (() async -> Void)?
 
     private init() {
         monitor.pathUpdateHandler = { [weak self] path in
@@ -22,14 +21,10 @@ final class NetworkMonitor {
                 let justReconnected = !self.isOnline && online
                 self.isOnline = online
                 if justReconnected {
-                    await self.onReconnect?()
+                    self.lastReconnectAt = Date()
                 }
             }
         }
         monitor.start(queue: queue)
-    }
-
-    func setReconnectHandler(_ handler: @escaping () async -> Void) {
-        onReconnect = handler
     }
 }

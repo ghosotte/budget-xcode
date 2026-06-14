@@ -34,16 +34,21 @@ final class APIClient: Sendable {
         "access_token", "refresh_token", "identity_token", "id_token", "password", "token"
     ]
 
+    private static let scrubRegexes: [(key: String, regex: NSRegularExpression)] = {
+        sensitiveKeys.compactMap { key in
+            let pattern = "\"\(key)\"\\s*:\\s*\"[^\"]*\""
+            guard let r = try? NSRegularExpression(pattern: pattern) else { return nil }
+            return (key, r)
+        }
+    }()
+
     private static func scrubSensitive(_ raw: String) -> String {
         var s = raw
-        for key in sensitiveKeys {
-            let pattern = "\"\(key)\"\\s*:\\s*\"[^\"]*\""
-            if let regex = try? NSRegularExpression(pattern: pattern) {
-                s = regex.stringByReplacingMatches(
-                    in: s, range: NSRange(s.startIndex..., in: s),
-                    withTemplate: "\"\(key)\":\"<scrubbed>\""
-                )
-            }
+        for (key, regex) in scrubRegexes {
+            s = regex.stringByReplacingMatches(
+                in: s, range: NSRange(s.startIndex..., in: s),
+                withTemplate: "\"\(key)\":\"<scrubbed>\""
+            )
         }
         return s
     }

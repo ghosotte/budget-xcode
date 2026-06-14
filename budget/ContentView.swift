@@ -16,6 +16,7 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("appTheme") private var themeRaw = AppTheme.system.rawValue
     @State private var authSession = AuthSession()
+    @State private var network = NetworkMonitor.shared
     @State private var selectedTab = AppTab.home
     @State private var formKind: TransactionFormKind?
 
@@ -69,14 +70,6 @@ struct ContentView: View {
             MetricsCollector.shared.subscribe()
             SeedService.seedIfNeeded(context: modelContext)
             RecurringService.generateExpenses(context: modelContext)
-            NetworkMonitor.shared.setReconnectHandler { [authSession] in
-                guard authSession.isAuthenticated else { return }
-                do {
-                    try await SyncService.quickSync(session: authSession, context: modelContext)
-                } catch {
-                    SyncErrorReporter.report(error, context: "NetworkMonitor.reconnect")
-                }
-            }
             if authSession.isAuthenticated {
                 do {
                     try await SyncService.syncAll(session: authSession, context: modelContext)
@@ -84,6 +77,16 @@ struct ContentView: View {
                     try modelContext.save()
                 } catch {
                     SyncErrorReporter.report(error, context: "ContentView.task.coldStart", surfacing: true)
+                }
+            }
+        }
+        .onChange(of: network.lastReconnectAt) { _, newValue in
+            guard newValue != nil, authSession.isAuthenticated else { return }
+            Task {
+                do {
+                    try await SyncService.quickSync(session: authSession, context: modelContext)
+                } catch {
+                    SyncErrorReporter.report(error, context: "NetworkMonitor.reconnect")
                 }
             }
         }

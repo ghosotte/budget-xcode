@@ -98,6 +98,7 @@ struct DashboardView: View {
         ScrollView {
             VStack(spacing: 16) {
                 header
+                SyncErrorBanner()
                 balanceCard
                 HStack(spacing: 12) {
                     expensesCard

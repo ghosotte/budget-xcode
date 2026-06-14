@@ -552,10 +552,7 @@ enum PushService {
     // MARK: Helpers
 
     private static func dayString(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
+        MonthMath.dayString(date)
     }
 
     private static func monthString(_ date: Date) -> String {
