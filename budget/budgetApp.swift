@@ -2,8 +2,6 @@
 //  budgetApp.swift
 //  budget
 //
-//  Created by Guilhem Hosotte on 05/06/2026.
-//
 
 import SwiftUI
 import SwiftData
@@ -11,21 +9,24 @@ import SwiftData
 @main
 struct budgetApp: App {
 
+    var sharedContainer: ModelContainer = {
+        let schema = Schema(versionedSchema: SchemaV1.self)
+        let configuration = ModelConfiguration(schema: schema)
+        do {
+            return try ModelContainer(
+                for: schema,
+                migrationPlan: BudgetMigrationPlan.self,
+                configurations: [configuration]
+            )
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
+    }()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: [
-            Household.self,
-            HouseholdMember.self,
-            Category.self,
-            Subcategory.self,
-            IncomeCategory.self,
-            BudgetExpenseLine.self,
-            BudgetIncome.self,
-            Expense.self,
-            IncomeEntry.self,
-            RecurringExpense.self,
-        ])
+        .modelContainer(sharedContainer)
     }
 }

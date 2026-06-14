@@ -50,7 +50,7 @@ enum MonthSyncService {
             try context.save()
             lastFetch[key] = Date()
         } catch {
-            // Silent — local cache remains source of truth for UI.
+            SyncErrorReporter.report(error, context: "MonthSyncService.refreshMonth(\(key))")
         }
     }
 
@@ -84,7 +84,7 @@ enum MonthSyncService {
             try context.save()
             recurringLastFetch[serverId] = Date()
         } catch {
-            // Silent
+            SyncErrorReporter.report(error, context: "MonthSyncService.refreshRecurring")
         }
     }
 }

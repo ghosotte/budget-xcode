@@ -3,8 +3,8 @@ import SwiftData
 
 @Model
 final class Category {
-    var id: UUID
-    var serverId: Int?
+    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var serverId: Int?
     var name: String = ""
     var emoji: String = ""
     var sortOrder: Int = 0
@@ -35,8 +35,8 @@ final class Category {
 
 @Model
 final class Subcategory {
-    var id: UUID
-    var serverId: Int?
+    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var serverId: Int?
     var category: Category?
     var name: String = ""
     var emoji: String = ""
@@ -62,8 +62,8 @@ final class Subcategory {
 
 @Model
 final class IncomeCategory {
-    var id: UUID
-    var serverId: Int?
+    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var serverId: Int?
     var name: String = ""
     var emoji: String = ""
     var sortOrder: Int = 0

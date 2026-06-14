@@ -3,8 +3,8 @@ import SwiftData
 
 @Model
 final class BudgetExpenseLine {
-    var id: UUID
-    var serverId: Int?
+    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var serverId: Int?
     var household: Household?
     var category: Category?
     var subcategory: Subcategory?
@@ -47,8 +47,8 @@ final class BudgetExpenseLine {
 
 @Model
 final class BudgetIncome {
-    var id: UUID
-    var serverId: Int?
+    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var serverId: Int?
     var household: Household?
     var incomeCategory: IncomeCategory?
     var month: Date = Date.distantPast

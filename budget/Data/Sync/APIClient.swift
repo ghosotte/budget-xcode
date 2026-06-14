@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 enum APIError: LocalizedError {
     case http(Int, String)
@@ -94,12 +95,10 @@ final class APIClient: Sendable {
         }
 
         let started = Date()
-        #if DEBUG
-        print("[API →] \(method) \(components.url?.absoluteString ?? path)")
+        AppLogger.sync.debug("→ \(method, privacy: .public) \(components.url?.absoluteString ?? path, privacy: .public)")
         if let bodyData, bodyData.count < 2048, let s = String(data: bodyData, encoding: .utf8) {
-            print("[API   ] body: \(Self.scrubSensitive(s))")
+            AppLogger.sync.debug("  body: \(Self.scrubSensitive(s), privacy: .private)")
         }
-        #endif
 
         let rawQuery = components.percentEncodedQuery ?? ""
         if assertion {
@@ -128,15 +127,12 @@ final class APIClient: Sendable {
         do {
             (data, response) = try await URLSession.shared.data(for: request)
         } catch {
-            #if DEBUG
             let elapsed = Int(Date().timeIntervalSince(started) * 1000)
-            print("[API ✗] \(method) \(path) → \(error) (\(elapsed)ms)")
-            #endif
+            AppLogger.sync.error("✗ \(method, privacy: .public) \(path, privacy: .public) → \(error.localizedDescription, privacy: .public) (\(elapsed)ms)")
             throw error
         }
         guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
 
-        #if DEBUG
         let elapsed = Int(Date().timeIntervalSince(started) * 1000)
         let preview: String
         if data.count < 2048, let s = String(data: data, encoding: .utf8) {
@@ -144,8 +140,7 @@ final class APIClient: Sendable {
         } else {
             preview = "\(data.count) bytes"
         }
-        print("[API ←] \(http.statusCode) \(method) \(path) (\(elapsed)ms)\n         \(preview)")
-        #endif
+        AppLogger.sync.debug("← \(http.statusCode, privacy: .public) \(method, privacy: .public) \(path, privacy: .public) (\(elapsed)ms) \(preview, privacy: .private)")
 
         if http.statusCode == 401, authenticated, allowRefresh {
             do {

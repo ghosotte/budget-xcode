@@ -21,24 +21,28 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            Tab("Accueil", systemImage: "house.fill", value: AppTab.home) {
-                DashboardView(
-                    onSeeAllExpenses: { selectedTab = .transactions },
-                    onAddExpense: { formKind = .expense }
-                )
-            }
-            Tab("Dépenses", systemImage: "list.bullet", value: AppTab.transactions) {
-                TransactionsView()
-            }
-            Tab("Budget", systemImage: "chart.bar.fill", value: AppTab.budget) {
-                BudgetTabView()
-            }
-            Tab("Historique", systemImage: "clock.arrow.circlepath", value: AppTab.history) {
-                HistoryView()
-            }
-            Tab("Réglages", systemImage: "gearshape.fill", value: AppTab.settings) {
-                SettingsView()
-            }
+            DashboardView(
+                onSeeAllExpenses: { selectedTab = .transactions },
+                onAddExpense: { formKind = .expense }
+            )
+            .tabItem { Label("Accueil", systemImage: "house.fill") }
+            .tag(AppTab.home)
+
+            TransactionsView()
+                .tabItem { Label("Dépenses", systemImage: "list.bullet") }
+                .tag(AppTab.transactions)
+
+            BudgetTabView()
+                .tabItem { Label("Budget", systemImage: "chart.bar.fill") }
+                .tag(AppTab.budget)
+
+            HistoryView()
+                .tabItem { Label("Historique", systemImage: "clock.arrow.circlepath") }
+                .tag(AppTab.history)
+
+            SettingsView()
+                .tabItem { Label("Réglages", systemImage: "gearshape.fill") }
+                .tag(AppTab.settings)
         }
         .tint(.budgetPrimary)
         .preferredColorScheme(AppTheme(rawValue: themeRaw)?.colorScheme)
@@ -66,12 +70,20 @@ struct ContentView: View {
             RecurringService.generateExpenses(context: modelContext)
             NetworkMonitor.shared.setReconnectHandler { [authSession] in
                 guard authSession.isAuthenticated else { return }
-                try? await SyncService.quickSync(session: authSession, context: modelContext)
+                do {
+                    try await SyncService.quickSync(session: authSession, context: modelContext)
+                } catch {
+                    SyncErrorReporter.report(error, context: "NetworkMonitor.reconnect")
+                }
             }
             if authSession.isAuthenticated {
-                try? await SyncService.syncAll(session: authSession, context: modelContext)
-                try? await SyncService.pullCategories(context: modelContext)
-                try? modelContext.save()
+                do {
+                    try await SyncService.syncAll(session: authSession, context: modelContext)
+                    try await SyncService.pullCategories(context: modelContext)
+                    try modelContext.save()
+                } catch {
+                    SyncErrorReporter.report(error, context: "ContentView.task.coldStart", surfacing: true)
+                }
             }
         }
         .onChange(of: scenePhase) { _, phase in
@@ -79,7 +91,11 @@ struct ContentView: View {
             let lastSync = UserDefaults.standard.double(forKey: "lastSyncAt")
             guard Date.now.timeIntervalSince1970 - lastSync > 60 else { return }
             Task {
-                try? await SyncService.quickSync(session: authSession, context: modelContext)
+                do {
+                    try await SyncService.quickSync(session: authSession, context: modelContext)
+                } catch {
+                    SyncErrorReporter.report(error, context: "ContentView.scenePhase.active")
+                }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: APIClient.sessionInvalidatedNotification)) { _ in

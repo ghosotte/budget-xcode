@@ -3,8 +3,8 @@ import SwiftData
 
 @Model
 final class Household {
-    var id: UUID
-    var serverId: Int?
+    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var serverId: Int?
     var ownerUserId: Int?
     var isAnonymous: Bool = true
     var isOrphan: Bool = false

@@ -3,8 +3,8 @@ import SwiftData
 
 @Model
 final class Expense {
-    var id: UUID
-    var serverId: Int?
+    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var serverId: Int?
     var household: Household?
     var category: Category?
     var subcategory: Subcategory?
@@ -61,8 +61,8 @@ final class Expense {
 
 @Model
 final class IncomeEntry {
-    var id: UUID
-    var serverId: Int?
+    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var serverId: Int?
     var household: Household?
     var incomeCategory: IncomeCategory?
     var amount: Decimal = 0
@@ -110,8 +110,8 @@ final class IncomeEntry {
 
 @Model
 final class RecurringExpense {
-    var id: UUID
-    var serverId: Int?
+    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var serverId: Int?
     var household: Household?
     var category: Category?
     var subcategory: Subcategory?
