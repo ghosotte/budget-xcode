@@ -64,6 +64,10 @@ struct ContentView: View {
         .task {
             SeedService.seedIfNeeded(context: modelContext)
             RecurringService.generateExpenses(context: modelContext)
+            NetworkMonitor.shared.setReconnectHandler { [authSession] in
+                guard authSession.isAuthenticated else { return }
+                try? await SyncService.quickSync(session: authSession, context: modelContext)
+            }
             if authSession.isAuthenticated {
                 try? await SyncService.syncAll(session: authSession, context: modelContext)
                 try? await SyncService.pullCategories(context: modelContext)

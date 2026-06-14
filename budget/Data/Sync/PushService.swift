@@ -6,11 +6,12 @@ import SwiftData
 enum PendingDeleteStore {
     struct Tombstone: Codable, Equatable {
         enum Kind: String, Codable {
-            case expense, income, recurring
+            case expense, income, recurring, budgetExpenseLine, budgetIncomeLine
         }
 
         let kind: Kind
         let serverId: Int
+        let monthString: String?
     }
 
     private static let key = "sync.pendingDeletes"
@@ -20,9 +21,9 @@ enum PendingDeleteStore {
         return (try? JSONDecoder().decode([Tombstone].self, from: data)) ?? []
     }
 
-    static func add(_ kind: Tombstone.Kind, serverId: Int) {
+    static func add(_ kind: Tombstone.Kind, serverId: Int, month: String? = nil) {
         var tombstones = all
-        let tombstone = Tombstone(kind: kind, serverId: serverId)
+        let tombstone = Tombstone(kind: kind, serverId: serverId, monthString: month)
         guard !tombstones.contains(tombstone) else { return }
         tombstones.append(tombstone)
         save(tombstones)
@@ -142,6 +143,24 @@ enum PushService {
         afterLocalChange(session: session, context: context)
     }
 
+    static func deleteBudgetExpenseLine(_ line: BudgetExpenseLine, viewMonth: Date, session: AuthSession, context: ModelContext) {
+        if let serverId = line.serverId, line.household?.serverId != nil {
+            PendingDeleteStore.add(.budgetExpenseLine, serverId: serverId, month: monthString(viewMonth))
+        }
+        context.delete(line)
+        try? context.save()
+        afterLocalChange(session: session, context: context)
+    }
+
+    static func deleteBudgetIncomeLine(_ line: BudgetIncome, viewMonth: Date, session: AuthSession, context: ModelContext) {
+        if let serverId = line.serverId, line.household?.serverId != nil {
+            PendingDeleteStore.add(.budgetIncomeLine, serverId: serverId, month: monthString(viewMonth))
+        }
+        context.delete(line)
+        try? context.save()
+        afterLocalChange(session: session, context: context)
+    }
+
     // MARK: Push des changements en attente
 
     static func pushPending(session: AuthSession, context: ModelContext) async throws {
@@ -158,6 +177,8 @@ enum PushService {
         try await pushExpenses(household: household)
         try await pushIncomes(household: household)
         try await pushRecurring(household: household)
+        try await pushBudgetExpenseLines(household: household)
+        try await pushBudgetIncomeLines(household: household)
         try context.save()
     }
 
@@ -207,6 +228,20 @@ enum PushService {
                     _ = try await APIClient.shared.send(
                         SimpleResponse.self, method: "DELETE",
                         path: "/budget/recurring/\(tombstone.serverId)"
+                    )
+                case .budgetExpenseLine:
+                    let m = tombstone.monthString ?? monthString(.now)
+                    _ = try await APIClient.shared.send(
+                        SimpleResponse.self, method: "DELETE",
+                        path: "/budget/budget/expense-lines/\(tombstone.serverId)",
+                        query: ["month": m]
+                    )
+                case .budgetIncomeLine:
+                    let m = tombstone.monthString ?? monthString(.now)
+                    _ = try await APIClient.shared.send(
+                        SimpleResponse.self, method: "DELETE",
+                        path: "/budget/budget/income-lines/\(tombstone.serverId)",
+                        query: ["month": m]
                     )
                 }
                 PendingDeleteStore.remove(tombstone)
@@ -339,7 +374,90 @@ enum PushService {
         }
     }
 
-    // MARK: Lignes budgétaires — remote-first
+    // MARK: Lignes budgétaires — push pendingUpload
+
+    private struct BudgetExpenseLinePushResponse: Decodable {
+        struct Inner: Decodable { let id: Int }
+        let success: Bool
+        let expenseLine: Inner?
+
+        enum CodingKeys: String, CodingKey {
+            case success
+            case expenseLine = "expense_line"
+        }
+    }
+
+    private struct BudgetIncomeLinePushResponse: Decodable {
+        struct Inner: Decodable { let id: Int }
+        let success: Bool
+        let incomeLine: Inner?
+
+        enum CodingKeys: String, CodingKey {
+            case success
+            case incomeLine = "income_line"
+        }
+    }
+
+    private static func pushBudgetExpenseLines(household: Household) async throws {
+        for line in household.budgetExpenseLines where line.syncStatus == .pendingUpload {
+            guard let categoryId = line.category?.serverId else { continue }
+            var body: [String: String?] = [
+                "category_id": String(categoryId),
+                "subcategory_id": line.subcategory?.serverId.map(String.init),
+                "month": monthString(line.month),
+                "frequency": line.frequency.rawValue,
+                "amount": NSDecimalNumber(decimal: line.amount).stringValue,
+            ]
+            body = body.filter { $0.value != nil }
+
+            if let serverId = line.serverId {
+                var patchBody = body
+                patchBody["edit_scope"] = "from_this_month"
+                _ = try await APIClient.shared.send(
+                    BudgetExpenseLinePushResponse.self, method: "PATCH",
+                    path: "/budget/budget/expense-lines/\(serverId)", body: patchBody
+                )
+            } else {
+                let response = try await APIClient.shared.send(
+                    BudgetExpenseLinePushResponse.self, method: "POST",
+                    path: "/budget/budget/expense-lines", body: body
+                )
+                line.serverId = response.expenseLine?.id
+            }
+            line.syncStatus = .synced
+        }
+    }
+
+    private static func pushBudgetIncomeLines(household: Household) async throws {
+        for line in household.budgetIncomes where line.syncStatus == .pendingUpload {
+            guard let incomeCategoryId = line.incomeCategory?.serverId else { continue }
+            var body: [String: String?] = [
+                "income_category_id": String(incomeCategoryId),
+                "month": monthString(line.month),
+                "frequency": line.frequency.rawValue,
+                "amount": NSDecimalNumber(decimal: line.amount).stringValue,
+            ]
+            body = body.filter { $0.value != nil }
+
+            if let serverId = line.serverId {
+                var patchBody = body
+                patchBody["edit_scope"] = "from_this_month"
+                _ = try await APIClient.shared.send(
+                    BudgetIncomeLinePushResponse.self, method: "PATCH",
+                    path: "/budget/budget/income-lines/\(serverId)", body: patchBody
+                )
+            } else {
+                let response = try await APIClient.shared.send(
+                    BudgetIncomeLinePushResponse.self, method: "POST",
+                    path: "/budget/budget/income-lines", body: body
+                )
+                line.serverId = response.incomeLine?.id
+            }
+            line.syncStatus = .synced
+        }
+    }
+
+    // MARK: Lignes budgétaires — remote-first (deprecated, kept for backwards compat)
 
     static func isRemoteBudget(_ household: Household?, session: AuthSession) -> Bool {
         session.isAuthenticated

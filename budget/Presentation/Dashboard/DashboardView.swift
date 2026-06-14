@@ -209,6 +209,10 @@ struct DashboardView: View {
                 }
             }
             .buttonStyle(.plain)
+            if household?.isAnonymous == false {
+                SyncStatusBadge()
+                    .padding(.leading, 6)
+            }
             Spacer()
             HStack(spacing: 14) {
                 Button {

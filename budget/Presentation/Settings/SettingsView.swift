@@ -9,9 +9,6 @@ struct SettingsView: View {
     @Environment(AuthSession.self) private var session
     @Environment(\.modelContext) private var modelContext
 
-    @State private var isSyncing = false
-    @State private var syncError: String?
-
     @Query private var households: [Household]
 
     private static let currencies = ["€", "$", "£", "CHF"]
@@ -98,20 +95,6 @@ struct SettingsView: View {
                 .padding(.vertical, 2)
                 .listRowBackground(Color.budgetSurface)
 
-                Button {
-                    Task { await syncNow() }
-                } label: {
-                    HStack {
-                        Text("Synchroniser maintenant")
-                        Spacer()
-                        if isSyncing {
-                            ProgressView()
-                        }
-                    }
-                }
-                .disabled(isSyncing)
-                .listRowBackground(Color.budgetSurface)
-
                 Button("Se déconnecter", role: .destructive) {
                     Task { await session.logout(context: modelContext) }
                 }
@@ -119,9 +102,7 @@ struct SettingsView: View {
             } header: {
                 Text("Compte")
             } footer: {
-                if let syncError {
-                    Text(syncError).foregroundStyle(Color.budgetDanger)
-                } else if lastSyncAt > 0 {
+                if lastSyncAt > 0 {
                     Text("Dernière synchronisation : \(Date(timeIntervalSince1970: lastSyncAt).formatted(date: .abbreviated, time: .shortened))")
                 }
             }
@@ -154,14 +135,4 @@ struct SettingsView: View {
         }
     }
 
-    private func syncNow() async {
-        isSyncing = true
-        syncError = nil
-        do {
-            try await SyncService.quickSync(session: session, context: modelContext)
-        } catch {
-            syncError = error.localizedDescription
-        }
-        isSyncing = false
-    }
 }

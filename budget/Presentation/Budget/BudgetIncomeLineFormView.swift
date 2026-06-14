@@ -127,33 +127,8 @@ struct BudgetIncomeLineFormView: View {
 
     private func save() async {
         guard let amount = parsedAmount, amount > 0 else { return }
-
-        if isRemote {
-            isWorking = true
-            errorMessage = nil
-            do {
-                if let line, let serverId = line.serverId {
-                    try await PushService.updateIncomeLineRemote(
-                        serverId: serverId, month: month,
-                        scope: needsScope ? scope : .fromThisMonth,
-                        frequency: frequency, amount: amount
-                    )
-                } else if let incomeCategory {
-                    try await PushService.createIncomeLineRemote(
-                        incomeCategory: incomeCategory, month: month,
-                        frequency: frequency, amount: amount
-                    )
-                } else {
-                    errorMessage = "Choisis une catégorie de revenu."
-                    isWorking = false
-                    return
-                }
-                try await SyncService.refreshBudgetLines(session: session, context: modelContext)
-                dismiss()
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-            isWorking = false
+        guard let incomeCategory else {
+            errorMessage = "Choisis une catégorie de revenu."
             return
         }
 
@@ -167,6 +142,9 @@ struct BudgetIncomeLineFormView: View {
                 month: month,
                 context: modelContext
             )
+            if isRemote {
+                PushService.markForUpload(&line.syncStatus, household: line.household)
+            }
         } else {
             let m = Calendar.current.startOfMonth(for: month)
             let new = BudgetIncome(
@@ -177,30 +155,24 @@ struct BudgetIncomeLineFormView: View {
                 amount: amount
             )
             new.household = household
+            if isRemote {
+                PushService.markForUpload(&new.syncStatus, household: household)
+            }
             modelContext.insert(new)
             try? modelContext.save()
         }
+        PushService.afterLocalChange(session: session, context: modelContext)
         dismiss()
     }
 
     private func deleteLine() async {
         guard let line else { return }
 
-        if isRemote, let serverId = line.serverId {
-            isWorking = true
-            errorMessage = nil
-            do {
-                try await PushService.deleteIncomeLineRemote(serverId: serverId, month: month)
-                try await SyncService.refreshBudgetLines(session: session, context: modelContext)
-                dismiss()
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-            isWorking = false
-            return
+        if isRemote, line.serverId != nil {
+            PushService.deleteBudgetIncomeLine(line, viewMonth: month, session: session, context: modelContext)
+        } else {
+            BudgetLineService.delete(line, month: month, context: modelContext)
         }
-
-        BudgetLineService.delete(line, month: month, context: modelContext)
         dismiss()
     }
 }
