@@ -1,5 +1,6 @@
 import Foundation
 import OSLog
+import SwiftData
 
 enum AppLogger {
     private static let subsystem = "com.guilhemhosotte.budget"
@@ -45,5 +46,16 @@ enum SyncErrorReporter {
 
     static func report(_ message: String, context: String, level: OSLogType = .error) {
         AppLogger.sync.log(level: level, "[\(context, privacy: .public)] \(message, privacy: .public)")
+    }
+}
+
+extension ModelContext {
+    /// Save and report errors via SyncErrorReporter instead of swallowing silently.
+    func safeSave(_ contextLabel: String) {
+        do {
+            try save()
+        } catch {
+            SyncErrorReporter.report(error, context: "save:\(contextLabel)")
+        }
     }
 }

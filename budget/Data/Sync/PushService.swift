@@ -112,7 +112,11 @@ enum PushService {
     static func afterLocalChange(session: AuthSession, context: ModelContext) {
         guard session.isAuthenticated else { return }
         Task {
-            try? await pushPending(session: session, context: context)
+            do {
+                try await pushPending(session: session, context: context)
+            } catch {
+                SyncErrorReporter.report(error, context: "PushService.afterLocalChange")
+            }
         }
     }
 
@@ -121,7 +125,7 @@ enum PushService {
             PendingDeleteStore.add(.expense, serverId: serverId)
         }
         context.delete(expense)
-        try? context.save()
+        context.safeSave("PushService.deleteExpense")
         afterLocalChange(session: session, context: context)
     }
 
@@ -130,7 +134,7 @@ enum PushService {
             PendingDeleteStore.add(.income, serverId: serverId)
         }
         context.delete(income)
-        try? context.save()
+        context.safeSave("PushService.deleteIncome")
         afterLocalChange(session: session, context: context)
     }
 
@@ -139,7 +143,7 @@ enum PushService {
             PendingDeleteStore.add(.recurring, serverId: serverId)
         }
         context.delete(template)
-        try? context.save()
+        context.safeSave("PushService.deleteRecurring")
         afterLocalChange(session: session, context: context)
     }
 
@@ -148,7 +152,7 @@ enum PushService {
             PendingDeleteStore.add(.budgetExpenseLine, serverId: serverId, month: monthString(viewMonth))
         }
         context.delete(line)
-        try? context.save()
+        context.safeSave("PushService.deleteBudgetExpenseLine")
         afterLocalChange(session: session, context: context)
     }
 
@@ -157,7 +161,7 @@ enum PushService {
             PendingDeleteStore.add(.budgetIncomeLine, serverId: serverId, month: monthString(viewMonth))
         }
         context.delete(line)
-        try? context.save()
+        context.safeSave("PushService.deleteBudgetIncomeLine")
         afterLocalChange(session: session, context: context)
     }
 

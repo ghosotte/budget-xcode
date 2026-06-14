@@ -163,9 +163,9 @@ final class AuthSession {
             for l in household.budgetIncomes { context.delete(l) }
             for r in household.recurringExpenses { context.delete(r) }
             for m in household.members { context.delete(m) }
-            try? context.save()
+            context.safeSave("AuthSession")
             context.delete(household)
-            try? context.save()
+            context.safeSave("AuthSession")
         }
     }
 
@@ -176,7 +176,7 @@ final class AuthSession {
         }
         if let first = households.first {
             first.isDefault = true
-            try? context.save()
+            context.safeSave("AuthSession")
             return
         }
         let household = Household(isAnonymous: true, name: SeedService.defaultHouseholdName, isDefault: true)

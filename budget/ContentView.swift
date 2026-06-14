@@ -66,6 +66,7 @@ struct ContentView: View {
             GIDSignIn.sharedInstance.handle(url)
         }
         .task {
+            MetricsCollector.shared.subscribe()
             SeedService.seedIfNeeded(context: modelContext)
             RecurringService.generateExpenses(context: modelContext)
             NetworkMonitor.shared.setReconnectHandler { [authSession] in
