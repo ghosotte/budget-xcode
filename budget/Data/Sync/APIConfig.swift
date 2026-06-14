@@ -17,12 +17,20 @@ enum APIConfig {
         return URL(string: "https://api.theapp.fr")!
     }
 
-    static var installationId: String {
-        if let existing = UserDefaults.standard.string(forKey: "installationId") {
-            return existing
+    private static let installationIdKey = "installationId"
+
+    /// Returns true iff this call generated a fresh installation_id (no prior UserDefaults entry).
+    @discardableResult
+    static func ensureInstallationId() -> (id: String, isFresh: Bool) {
+        if let existing = UserDefaults.standard.string(forKey: installationIdKey) {
+            return (existing, false)
         }
         let new = UUID().uuidString
-        UserDefaults.standard.set(new, forKey: "installationId")
-        return new
+        UserDefaults.standard.set(new, forKey: installationIdKey)
+        return (new, true)
+    }
+
+    static var installationId: String {
+        ensureInstallationId().id
     }
 }

@@ -50,9 +50,21 @@ final class AuthSession {
     }
 
     private func migrateTokensIfNeeded() {
+        // Fresh installation_id implies app was reinstalled (UserDefaults wiped).
+        // Keychain may still hold a stale App Attest keyId bound server-side to the old
+        // installation_id — purge it so ensureAttested generates a fresh one.
+        let installation = APIConfig.ensureInstallationId()
+        if installation.isFresh {
+            APIClient.shared.clearTokens()
+            AppAttestClient.shared.reset()
+            UserDefaults.standard.removeObject(forKey: Self.userKey)
+            UserDefaults.standard.removeObject(forKey: Self.householdKey)
+        }
+
         let stored = UserDefaults.standard.integer(forKey: Self.tokenSchemaKey)
         if stored < Self.currentTokenSchema {
             APIClient.shared.clearTokens()
+            AppAttestClient.shared.reset()
             UserDefaults.standard.removeObject(forKey: Self.userKey)
             UserDefaults.standard.removeObject(forKey: Self.householdKey)
             UserDefaults.standard.set(Self.currentTokenSchema, forKey: Self.tokenSchemaKey)
