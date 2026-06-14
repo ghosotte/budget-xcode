@@ -1,0 +1,21 @@
+# SwiftFormat config — opinionated defaults aligned with project style.
+--swiftversion 5.9
+--indent 4
+--maxwidth 120
+--allman false
+--commas inline
+--exponentcase lowercase
+--linebreaks lf
+--ranges spaced
+--self remove
+--semicolons never
+--stripunusedargs closure-only
+--trimwhitespace always
+--wraparguments before-first
+--wrapcollections before-first
+--wrapparameters before-first
+
+# Disable rules that conflict with Apple-style closures / SwiftUI:
+--disable redundantReturn,wrapMultilineStatementBraces
+
+--exclude .build,DerivedData,vendor,Pods,Carthage
