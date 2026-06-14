@@ -1,86 +1,128 @@
-//
-//  ContentView.swift
-//  budget
-//
-//  Created by Guilhem Hosotte on 05/06/2026.
-//
-
+import GoogleSignIn
 import SwiftUI
-import CoreData
+import SwiftData
+
+enum AppTab: Hashable {
+    case home, transactions, budget, history, settings
+}
+
+enum TransactionFormKind: Identifiable {
+    case expense, income
+    var id: Self { self }
+}
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("appTheme") private var themeRaw = AppTheme.system.rawValue
+    @State private var authSession = AuthSession()
+    @State private var selectedTab = AppTab.home
+    @State private var formKind: TransactionFormKind?
 
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
-                    }
-                }
-                .onDelete(perform: deleteItems)
+        TabView(selection: $selectedTab) {
+            Tab("Accueil", systemImage: "house.fill", value: AppTab.home) {
+                DashboardView(
+                    onSeeAllExpenses: { selectedTab = .transactions },
+                    onAddExpense: { formKind = .expense }
+                )
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
+            Tab("Dépenses", systemImage: "list.bullet", value: AppTab.transactions) {
+                TransactionsView()
             }
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            Tab("Budget", systemImage: "chart.bar.fill", value: AppTab.budget) {
+                BudgetTabView()
+            }
+            Tab("Historique", systemImage: "clock.arrow.circlepath", value: AppTab.history) {
+                HistoryView()
+            }
+            Tab("Réglages", systemImage: "gearshape.fill", value: AppTab.settings) {
+                SettingsView()
             }
         }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+        .tint(.budgetPrimary)
+        .preferredColorScheme(AppTheme(rawValue: themeRaw)?.colorScheme)
+        .overlay(alignment: .bottomTrailing) {
+            if selectedTab == .home || selectedTab == .transactions {
+                FABMenuButton { kind in
+                    formKind = kind
+                }
+                .padding(.trailing, 20)
+                .padding(.bottom, 90)
+            }
+        }
+        .sheet(item: $formKind) { kind in
+            switch kind {
+            case .expense: ExpenseFormView()
+            case .income:  IncomeFormView()
+            }
+        }
+        .environment(authSession)
+        .onOpenURL { url in
+            GIDSignIn.sharedInstance.handle(url)
+        }
+        .task {
+            SeedService.seedIfNeeded(context: modelContext)
+            RecurringService.generateExpenses(context: modelContext)
+            if authSession.isAuthenticated {
+                try? await SyncService.syncAll(session: authSession, context: modelContext)
+                try? await SyncService.pullCategories(context: modelContext)
+                try? modelContext.save()
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active, authSession.isAuthenticated else { return }
+            let lastSync = UserDefaults.standard.double(forKey: "lastSyncAt")
+            guard Date.now.timeIntervalSince1970 - lastSync > 60 else { return }
+            Task {
+                try? await SyncService.quickSync(session: authSession, context: modelContext)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: APIClient.sessionInvalidatedNotification)) { _ in
+            Task {
+                await authSession.logout(context: modelContext)
             }
         }
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
+// MARK: — FAB
+
+private struct FABMenuButton: View {
+    let onSelect: (TransactionFormKind) -> Void
+
+    var body: some View {
+        Menu {
+            Button { onSelect(.expense) } label: {
+                Label("Dépense", systemImage: "arrow.up")
+            }
+            Button { onSelect(.income) } label: {
+                Label("Revenu", systemImage: "arrow.down")
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "plus")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("Dépense")
+                    .font(.system(size: 16, weight: .semibold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 15)
+            .background(Capsule().fill(Color.budgetPrimary))
+            .shadow(color: Color.budgetPrimary.opacity(0.35), radius: 10, y: 4)
+        } primaryAction: {
+            onSelect(.expense)
+        }
+        .menuIndicator(.hidden)
+    }
+}
 
 #Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    ContentView()
+        .modelContainer(for: [
+            Household.self, Category.self, Subcategory.self, IncomeCategory.self,
+            BudgetExpenseLine.self, BudgetIncome.self, Expense.self,
+            IncomeEntry.self, RecurringExpense.self,
+        ], inMemory: true)
 }
