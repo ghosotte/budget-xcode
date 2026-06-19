@@ -502,6 +502,11 @@ enum SyncService {
     }
 
     private static func parseMonth(_ raw: String) -> Date? {
-        MonthMath.parseMonth(raw)
+        guard let utc = MonthMath.parseMonth(raw) else { return nil }
+        let comps = MonthMath.calendar.dateComponents([.year, .month], from: utc)
+        var local = DateComponents()
+        local.year = comps.year
+        local.month = comps.month
+        return Calendar.current.date(from: local)
     }
 }

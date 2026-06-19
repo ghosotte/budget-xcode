@@ -16,7 +16,6 @@ struct BudgetExpenseLineFormView: View {
     @State private var frequency: Frequency
     @State private var subcategory: Subcategory?
     @State private var scope = EditScope.fromThisMonth
-    @State private var showDeleteConfirm = false
     @State private var isWorking = false
     @State private var errorMessage: String?
 
@@ -113,31 +112,20 @@ struct BudgetExpenseLineFormView: View {
                     }
                 }
 
-                if line != nil {
-                    Section {
-                        Button("Supprimer la ligne", role: .destructive) {
-                            showDeleteConfirm = true
-                        }
-                    }
-                }
             }
             .navigationTitle(line == nil ? "Nouvelle ligne" : "Modifier la ligne")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annuler") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Enregistrer") { Task { await save() } }
-                        .disabled(!isValid || isWorking)
+                    CloseButton { dismiss() }
                 }
             }
-            .confirmationDialog(
-                "Supprimer cette ligne à partir de \(AppDateFormatter.monthYear(month)) ?",
-                isPresented: $showDeleteConfirm,
-                titleVisibility: .visible
-            ) {
-                Button("Supprimer", role: .destructive) { Task { await deleteLine() } }
+            .safeAreaInset(edge: .bottom) {
+                PrimaryActionButton(
+                    title: line == nil ? "Ajouter la ligne" : "Enregistrer",
+                    enabled: isValid,
+                    working: isWorking
+                ) { Task { await save() } }
             }
         }
         .tint(.budgetPrimary)
@@ -180,17 +168,6 @@ struct BudgetExpenseLineFormView: View {
             try? modelContext.save()
         }
         PushService.afterLocalChange(session: session, context: modelContext)
-        dismiss()
-    }
-
-    private func deleteLine() async {
-        guard let line else { return }
-
-        if isRemote, line.serverId != nil {
-            PushService.deleteBudgetExpenseLine(line, viewMonth: month, session: session, context: modelContext)
-        } else {
-            BudgetLineService.delete(line, month: month, context: modelContext)
-        }
         dismiss()
     }
 }

@@ -62,11 +62,18 @@ final class APIClient: Sendable {
         query: [String: String] = [:],
         body: (any Encodable)? = nil,
         authenticated: Bool = true,
-        assertion: Bool = true
+        // Device-bound session model. App Attest assertion proves the request comes from the
+        // genuine attested device; verifying it costs a Secure Enclave signature per call. We
+        // require it on mutations (POST/PUT/PATCH/DELETE), where replay/forgery matters, and skip
+        // it on reads (GET), which are frequent and low-risk — mirrors the backend's per-route
+        // requiresAssertion. Default derives from the HTTP method; pass an explicit value to
+        // override (pre-session auth endpoints and logout send false despite being POST).
+        assertion: Bool? = nil
     ) async throws -> T {
+        let useAssertion = assertion ?? (method.uppercased() != "GET")
         let data = try await sendRaw(
             method: method, path: path, query: query, body: body,
-            authenticated: authenticated, assertion: assertion, allowRefresh: true
+            authenticated: authenticated, assertion: useAssertion, allowRefresh: true
         )
         let decoder = JSONDecoder()
         return try decoder.decode(T.self, from: data)
@@ -120,10 +127,12 @@ final class APIClient: Sendable {
             }
         }
 
+        var usedAccessToken: String?
         if authenticated {
             guard let token = KeychainStore.get(Self.accessTokenKey) else {
                 throw APIError.notAuthenticated
             }
+            usedAccessToken = token
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
@@ -149,7 +158,13 @@ final class APIClient: Sendable {
 
         if http.statusCode == 401, authenticated, allowRefresh {
             do {
-                try await refreshTokens()
+                // Single-flight: concurrent 401s collapse into one refresh. The refresh token
+                // is single-use/rotating server-side, so parallel refreshes would revoke each
+                // other and force a spurious logout. Callers that lost the race just retry with
+                // the freshly stored token.
+                try await TokenRefreshCoordinator.shared.refreshIfNeeded(staleAccessToken: usedAccessToken) {
+                    try await self.refreshTokens()
+                }
             } catch {
                 await invalidateSession()
                 throw APIError.notAuthenticated
@@ -161,7 +176,7 @@ final class APIClient: Sendable {
         }
 
         if http.statusCode == 401, authenticated, !allowRefresh {
-            // 401 even after a fresh refresh — suspect stale App Attest keyId or revoked session.
+            // 401 even after a fresh refresh — refresh token is revoked or expired. End the session.
             await invalidateSession()
             throw APIError.notAuthenticated
         }
@@ -198,8 +213,11 @@ final class APIClient: Sendable {
     }
 
     private func invalidateSession() async {
+        // Only clear auth tokens. The App Attest key is independent of session validity —
+        // resetting it here forces a needless key rotation, which restarts the Secure Enclave
+        // counter and breaks assertions until the server-side counter catches up. Stale keyId
+        // recovery is already handled in AppAttestClient on DCError.invalidInput.
         clearTokens()
-        AppAttestClient.shared.reset()
         await MainActor.run {
             NotificationCenter.default.post(name: Self.sessionInvalidatedNotification, object: nil)
         }
@@ -232,7 +250,8 @@ final class APIClient: Sendable {
                 method: "POST",
                 path: "/budget/auth/refresh",
                 body: ["refresh_token": refreshToken],
-                authenticated: false
+                authenticated: false,
+                assertion: true
             )
             guard response.success, let access = response.accessToken, let refresh = response.refreshToken else {
                 clearTokens()
@@ -243,5 +262,38 @@ final class APIClient: Sendable {
             clearTokens()
             throw APIError.notAuthenticated
         }
+    }
+}
+
+/// Collapses concurrent token refreshes into a single network call.
+///
+/// The backend rotates refresh tokens single-use (the old one is revoked the moment it's
+/// consumed). Without this gate, several requests hitting 401 at once would each fire a
+/// refresh with the same stale refresh token — the first wins, the rest get
+/// "Invalid or expired refresh token" and trigger a spurious logout.
+actor TokenRefreshCoordinator {
+    static let shared = TokenRefreshCoordinator()
+
+    private var inFlight: Task<Void, Error>?
+
+    private init() {}
+
+    /// - Parameter staleAccessToken: the access token that produced the 401. If the stored
+    ///   token already differs, another caller has refreshed — we skip and let the caller retry.
+    func refreshIfNeeded(
+        staleAccessToken: String?,
+        perform: @Sendable @escaping () async throws -> Void
+    ) async throws {
+        if let current = KeychainStore.get(APIClient.accessTokenKey), current != staleAccessToken {
+            return
+        }
+        if let task = inFlight {
+            try await task.value
+            return
+        }
+        let task = Task { try await perform() }
+        inFlight = task
+        defer { inFlight = nil }
+        try await task.value
     }
 }

@@ -10,6 +10,7 @@ struct IncomeFormView: View {
     @Query private var households: [Household]
 
     private let income: IncomeEntry?
+    private let kindSelection: Binding<TransactionFormKind>?
 
     @State private var amountText: String
     @State private var label: String
@@ -17,9 +18,11 @@ struct IncomeFormView: View {
     @State private var incomeCategory: IncomeCategory?
     @State private var status: ExpenseStatus
     @State private var notes: String
+    @State private var showCategoryPicker = false
 
-    init(income: IncomeEntry? = nil) {
+    init(income: IncomeEntry? = nil, kindSelection: Binding<TransactionFormKind>? = nil) {
         self.income = income
+        self.kindSelection = kindSelection
         _amountText = State(initialValue: income.map {
             NSDecimalNumber(decimal: $0.amount).stringValue.replacingOccurrences(of: ".", with: ",")
         } ?? "")
@@ -38,6 +41,11 @@ struct IncomeFormView: View {
         (parsedAmount ?? 0) > 0
     }
 
+    private var categoryLabel: String {
+        guard let incomeCategory else { return "Aucune" }
+        return "\(incomeCategory.emoji) \(incomeCategory.name)"
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -54,10 +62,19 @@ struct IncomeFormView: View {
                 Section("Détails") {
                     TextField("Libellé (ex : Salaire)", text: $label)
                     DatePicker("Date de réception", selection: $date, displayedComponents: .date)
-                    Picker("Catégorie", selection: $incomeCategory) {
-                        Text("Aucune").tag(IncomeCategory?.none)
-                        ForEach(incomeCategories) { cat in
-                            Text("\(cat.emoji) \(cat.name)").tag(Optional(cat))
+                    Button {
+                        showCategoryPicker = true
+                    } label: {
+                        HStack {
+                            Text("Catégorie")
+                                .foregroundStyle(Color.budgetText)
+                            Spacer()
+                            Text(categoryLabel)
+                                .foregroundStyle(incomeCategory == nil ? Color.budgetTextMute : Color.budgetText)
+                                .multilineTextAlignment(.trailing)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.budgetTextFaint)
                         }
                     }
                     Picker("Statut", selection: $status) {
@@ -76,12 +93,25 @@ struct IncomeFormView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annuler") { dismiss() }
+                    CloseButton { dismiss() }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Enregistrer") { save() }
-                        .disabled(!isValid)
+                if let kindSelection {
+                    ToolbarItem(placement: .principal) {
+                        Picker("Type", selection: kindSelection) {
+                            ForEach(TransactionFormKind.allCases) { k in
+                                Text(k.label).tag(k)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 200)
+                    }
                 }
+            }
+            .safeAreaInset(edge: .bottom) {
+                PrimaryActionButton(title: income == nil ? "Ajouter le revenu" : "Enregistrer", enabled: isValid) { save() }
+            }
+            .sheet(isPresented: $showCategoryPicker) {
+                IncomeCategoryPickerView(incomeCategory: $incomeCategory)
             }
         }
         .tint(.budgetPrimary)

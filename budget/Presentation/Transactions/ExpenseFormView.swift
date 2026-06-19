@@ -10,6 +10,7 @@ struct ExpenseFormView: View {
     @Query private var households: [Household]
 
     private let expense: Expense?
+    private let kindSelection: Binding<TransactionFormKind>?
 
     @State private var amountText: String
     @State private var label: String
@@ -19,9 +20,11 @@ struct ExpenseFormView: View {
     @State private var status: ExpenseStatus
     @State private var notes: String
     @State private var tagsText: String
+    @State private var showCategoryPicker = false
 
-    init(expense: Expense? = nil) {
+    init(expense: Expense? = nil, kindSelection: Binding<TransactionFormKind>? = nil) {
         self.expense = expense
+        self.kindSelection = kindSelection
         _amountText = State(initialValue: expense.map {
             NSDecimalNumber(decimal: $0.amount).stringValue.replacingOccurrences(of: ".", with: ",")
         } ?? "")
@@ -42,8 +45,12 @@ struct ExpenseFormView: View {
         (parsedAmount ?? 0) > 0
     }
 
-    private var sortedSubcategories: [Subcategory] {
-        category?.subcategories.sorted { $0.sortOrder < $1.sortOrder } ?? []
+    private var categoryLabel: String {
+        guard let category else { return "Aucune" }
+        if let subcategory {
+            return "\(category.emoji) \(category.name) › \(subcategory.name)"
+        }
+        return "\(category.emoji) \(category.name)"
     }
 
     var body: some View {
@@ -62,18 +69,19 @@ struct ExpenseFormView: View {
                 Section("Détails") {
                     TextField("Libellé (ex : Courses Lidl)", text: $label)
                     DatePicker("Date", selection: $date, displayedComponents: .date)
-                    Picker("Catégorie", selection: $category) {
-                        Text("Aucune").tag(Category?.none)
-                        ForEach(categories) { cat in
-                            Text("\(cat.emoji) \(cat.name)").tag(Optional(cat))
-                        }
-                    }
-                    if !sortedSubcategories.isEmpty {
-                        Picker("Sous-catégorie", selection: $subcategory) {
-                            Text("Aucune").tag(Subcategory?.none)
-                            ForEach(sortedSubcategories) { sub in
-                                Text(sub.name).tag(Optional(sub))
-                            }
+                    Button {
+                        showCategoryPicker = true
+                    } label: {
+                        HStack {
+                            Text("Catégorie")
+                                .foregroundStyle(Color.budgetText)
+                            Spacer()
+                            Text(categoryLabel)
+                                .foregroundStyle(category == nil ? Color.budgetTextMute : Color.budgetText)
+                                .multilineTextAlignment(.trailing)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.budgetTextFaint)
                         }
                     }
                     Picker("Statut", selection: $status) {
@@ -93,17 +101,30 @@ struct ExpenseFormView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annuler") { dismiss() }
+                    CloseButton { dismiss() }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Enregistrer") { save() }
-                        .disabled(!isValid)
+                if let kindSelection {
+                    ToolbarItem(placement: .principal) {
+                        Picker("Type", selection: kindSelection) {
+                            ForEach(TransactionFormKind.allCases) { k in
+                                Text(k.label).tag(k)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 200)
+                    }
                 }
+            }
+            .safeAreaInset(edge: .bottom) {
+                PrimaryActionButton(title: expense == nil ? "Ajouter la dépense" : "Enregistrer", enabled: isValid) { save() }
             }
             .onChange(of: category) {
                 if subcategory?.category != category {
                     subcategory = nil
                 }
+            }
+            .sheet(isPresented: $showCategoryPicker) {
+                CategoryPickerView(category: $category, subcategory: $subcategory)
             }
         }
         .tint(.budgetPrimary)

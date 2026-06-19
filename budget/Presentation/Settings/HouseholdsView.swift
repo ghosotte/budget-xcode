@@ -164,14 +164,14 @@ struct HouseholdsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annuler") { showCreate = false }
+                    CloseButton { showCreate = false }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Créer") {
-                        Task { await create() }
-                    }
-                    .disabled(newName.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                PrimaryActionButton(
+                    title: "Créer",
+                    enabled: !newName.trimmingCharacters(in: .whitespaces).isEmpty
+                ) { Task { await create() } }
             }
         }
     }
@@ -192,18 +192,15 @@ struct HouseholdsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annuler") { showJoin = false }
+                    CloseButton { showJoin = false }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    if joining {
-                        ProgressView()
-                    } else {
-                        Button("Rejoindre") {
-                            Task { await join() }
-                        }
-                        .disabled(extractToken(from: joinToken).isEmpty)
-                    }
-                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                PrimaryActionButton(
+                    title: "Rejoindre",
+                    enabled: !extractToken(from: joinToken).isEmpty,
+                    working: joining
+                ) { Task { await join() } }
             }
         }
     }
@@ -222,14 +219,14 @@ struct HouseholdsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annuler") { promoteTarget = nil }
+                    CloseButton { promoteTarget = nil }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Confirmer") {
-                        Task { await promote() }
-                    }
-                    .disabled(promoteName.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                PrimaryActionButton(
+                    title: "Confirmer",
+                    enabled: !promoteName.trimmingCharacters(in: .whitespaces).isEmpty
+                ) { Task { await promote() } }
             }
         }
     }

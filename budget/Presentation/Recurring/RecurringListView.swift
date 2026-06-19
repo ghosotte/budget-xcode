@@ -9,7 +9,7 @@ struct RecurringListView: View {
             RecurringListContent()
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("Fermer") { dismiss() }
+                        CloseButton { dismiss() }
                     }
                 }
         }

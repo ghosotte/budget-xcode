@@ -10,12 +10,12 @@ struct BudgetIncomeLineFormView: View {
     @Environment(AuthSession.self) private var session
     @Query private var households: [Household]
     @Query(sort: \IncomeCategory.sortOrder) private var incomeCategories: [IncomeCategory]
+    @Query private var budgetIncomes: [BudgetIncome]
 
     @State private var amountText: String
     @State private var frequency: Frequency
     @State private var incomeCategory: IncomeCategory?
     @State private var scope = EditScope.fromThisMonth
-    @State private var showDeleteConfirm = false
     @State private var isWorking = false
     @State private var errorMessage: String?
 
@@ -46,13 +46,27 @@ struct BudgetIncomeLineFormView: View {
         return BudgetLineService.needsScopeChoice(line, month: month)
     }
 
+    /// Catégories de revenu déjà budgétées ce mois (hors ligne en cours d'édition).
+    /// Le back-end refuse plus d'une ligne par catégorie/période (409).
+    private var takenCategoryIDs: Set<UUID> {
+        Set(
+            budgetIncomes
+                .filter { $0.household == household && $0.isActive(for: month) && $0 != line }
+                .compactMap { $0.incomeCategory?.id }
+        )
+    }
+
+    private var availableCategories: [IncomeCategory] {
+        incomeCategories.filter { !takenCategoryIDs.contains($0.id) }
+    }
+
     var body: some View {
         NavigationStack {
             Form {
                 Section("Revenu prévu") {
                     Picker("Catégorie", selection: $incomeCategory) {
                         Text("Aucune").tag(IncomeCategory?.none)
-                        ForEach(incomeCategories) { cat in
+                        ForEach(availableCategories) { cat in
                             Text("\(cat.emoji) \(cat.name)").tag(Optional(cat))
                         }
                     }
@@ -91,31 +105,20 @@ struct BudgetIncomeLineFormView: View {
                     }
                 }
 
-                if line != nil {
-                    Section {
-                        Button("Supprimer la ligne", role: .destructive) {
-                            showDeleteConfirm = true
-                        }
-                    }
-                }
             }
             .navigationTitle(line == nil ? "Nouveau revenu prévu" : "Modifier le revenu prévu")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annuler") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Enregistrer") { Task { await save() } }
-                        .disabled(!isValid || isWorking)
+                    CloseButton { dismiss() }
                 }
             }
-            .confirmationDialog(
-                "Supprimer cette ligne à partir de \(AppDateFormatter.monthYear(month)) ?",
-                isPresented: $showDeleteConfirm,
-                titleVisibility: .visible
-            ) {
-                Button("Supprimer", role: .destructive) { Task { await deleteLine() } }
+            .safeAreaInset(edge: .bottom) {
+                PrimaryActionButton(
+                    title: line == nil ? "Ajouter le revenu prévu" : "Enregistrer",
+                    enabled: isValid,
+                    working: isWorking
+                ) { Task { await save() } }
             }
         }
         .tint(.budgetPrimary)
@@ -129,6 +132,10 @@ struct BudgetIncomeLineFormView: View {
         guard let amount = parsedAmount, amount > 0 else { return }
         guard let incomeCategory else {
             errorMessage = "Choisis une catégorie de revenu."
+            return
+        }
+        if takenCategoryIDs.contains(incomeCategory.id) {
+            errorMessage = "Un revenu prévu existe déjà pour « \(incomeCategory.name) » ce mois-ci."
             return
         }
 
@@ -162,17 +169,6 @@ struct BudgetIncomeLineFormView: View {
             try? modelContext.save()
         }
         PushService.afterLocalChange(session: session, context: modelContext)
-        dismiss()
-    }
-
-    private func deleteLine() async {
-        guard let line else { return }
-
-        if isRemote, line.serverId != nil {
-            PushService.deleteBudgetIncomeLine(line, viewMonth: month, session: session, context: modelContext)
-        } else {
-            BudgetLineService.delete(line, month: month, context: modelContext)
-        }
         dismiss()
     }
 }

@@ -6,10 +6,13 @@ struct CategoryBudgetDetailView: View {
     let month: Date
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Environment(AuthSession.self) private var session
     @Query private var households: [Household]
     @Query private var budgetExpenseLines: [BudgetExpenseLine]
 
     @State private var formTarget: ExpenseLineFormTarget?
+    @State private var deleteTarget: BudgetExpenseLine?
 
     private var household: Household? {
         households.first(where: \.isDefault) ?? households.first
@@ -40,6 +43,13 @@ struct CategoryBudgetDetailView: View {
                                     LineRow(line: line)
                                 }
                                 .listRowBackground(Color.budgetSurface)
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        deleteTarget = line
+                                    } label: {
+                                        Label("Supprimer", systemImage: "trash")
+                                    }
+                                }
                             }
                         } footer: {
                             Text("Total : \(AmountFormatter.kpi(total)) · \(AppDateFormatter.monthYear(month))")
@@ -54,7 +64,7 @@ struct CategoryBudgetDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Fermer") { dismiss() }
+                    CloseButton { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button { formTarget = .new } label: {
@@ -66,8 +76,27 @@ struct CategoryBudgetDetailView: View {
                 BudgetExpenseLineFormView(category: category, month: month, line: target.line)
                     .presentationDetents([.medium, .large])
             }
+            .confirmationDialog(
+                "Supprimer cette ligne à partir de \(AppDateFormatter.monthYear(month)) ?",
+                isPresented: Binding(get: { deleteTarget != nil }, set: { if !$0 { deleteTarget = nil } }),
+                titleVisibility: .visible
+            ) {
+                Button("Supprimer", role: .destructive) {
+                    if let line = deleteTarget { delete(line) }
+                    deleteTarget = nil
+                }
+                Button("Annuler", role: .cancel) { deleteTarget = nil }
+            }
         }
         .tint(.budgetPrimary)
+    }
+
+    private func delete(_ line: BudgetExpenseLine) {
+        if PushService.isRemoteBudget(household, session: session), line.serverId != nil {
+            PushService.deleteBudgetExpenseLine(line, viewMonth: month, session: session, context: modelContext)
+        } else {
+            BudgetLineService.delete(line, month: month, context: modelContext)
+        }
     }
 
     private var emptyState: some View {

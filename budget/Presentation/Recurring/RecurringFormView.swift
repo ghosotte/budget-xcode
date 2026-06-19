@@ -98,12 +98,11 @@ struct RecurringFormView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annuler") { dismiss() }
+                    CloseButton { dismiss() }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Enregistrer") { save() }
-                        .disabled(!isValid)
-                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                PrimaryActionButton(title: template == nil ? "Ajouter le récurrent" : "Enregistrer", enabled: isValid) { save() }
             }
             .onChange(of: category) {
                 if subcategory?.category != category {

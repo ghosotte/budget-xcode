@@ -4,11 +4,14 @@ import SwiftData
 struct BudgetView: View {
     let month: Date
 
+    @Environment(\.modelContext) private var modelContext
+    @Environment(AuthSession.self) private var session
     @Query private var households: [Household]
     @Query(sort: \Category.sortOrder) private var categories: [Category]
     @Query private var budgetExpenseLines: [BudgetExpenseLine]
     @Query private var budgetIncomes: [BudgetIncome]
     @Query private var expenses: [Expense]
+    @Query private var incomeEntries: [IncomeEntry]
 
     @State private var selectedCategory: Category?
     @State private var incomeFormTarget: IncomeLineFormTarget?
@@ -39,6 +42,30 @@ struct BudgetView: View {
         activeExpenseLines
             .filter { $0.category == category }
             .reduce(0) { $0 + $1.amount }
+    }
+
+    private func delete(_ line: BudgetIncome) {
+        if PushService.isRemoteBudget(household, session: session), line.serverId != nil {
+            PushService.deleteBudgetIncomeLine(line, viewMonth: month, session: session, context: modelContext)
+        } else {
+            BudgetLineService.delete(line, month: month, context: modelContext)
+        }
+    }
+
+    private var realExpensesTotal: Decimal {
+        expenses
+            .filter { $0.household == household && $0.effectiveMonth == month && $0.status == .real }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    private var realIncomeTotal: Decimal {
+        incomeEntries
+            .filter { $0.household == household && $0.effectiveMonth == month && $0.status == .real }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    private var currentBalance: Decimal {
+        realIncomeTotal - realExpensesTotal
     }
 
     private func spent(for category: Category) -> Decimal {
@@ -100,6 +127,15 @@ struct BudgetView: View {
             }
             Divider().overlay(Color.budgetBorder.opacity(0.6))
             HStack {
+                Text("Solde actuel")
+                    .font(.caption)
+                    .foregroundStyle(Color.budgetTextMute)
+                Spacer()
+                Text(AmountFormatter.kpi(currentBalance, signed: true))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(currentBalance >= 0 ? Color.budgetPrimary : Color.budgetDanger)
+            }
+            HStack {
                 Text("Solde prévisionnel")
                     .font(.caption)
                     .foregroundStyle(Color.budgetTextMute)
@@ -140,26 +176,30 @@ struct BudgetView: View {
             } else {
                 VStack(spacing: 0) {
                     ForEach(activeIncomeLines) { line in
-                        Button { incomeFormTarget = .edit(line) } label: {
-                            HStack(spacing: 12) {
-                                Text(line.incomeCategory?.emoji ?? "💸")
-                                    .font(.system(size: 16))
-                                    .frame(width: 34, height: 34)
-                                    .background(RoundedRectangle(cornerRadius: 9).fill(Color.budgetSurfaceMute))
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text(line.incomeCategory?.name ?? "Revenu")
+                        SwipeToDeleteRow {
+                            delete(line)
+                        } content: {
+                            Button { incomeFormTarget = .edit(line) } label: {
+                                HStack(spacing: 12) {
+                                    Text(line.incomeCategory?.emoji ?? "💸")
+                                        .font(.system(size: 16))
+                                        .frame(width: 34, height: 34)
+                                        .background(RoundedRectangle(cornerRadius: 9).fill(Color.budgetSurfaceMute))
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Text(line.incomeCategory?.name ?? "Revenu")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(Color.budgetText)
+                                        Text(line.frequency.label)
+                                            .font(.caption)
+                                            .foregroundStyle(Color.budgetTextMute)
+                                    }
+                                    Spacer()
+                                    Text(AmountFormatter.kpi(line.amount))
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundStyle(Color.budgetText)
-                                    Text(line.frequency.label)
-                                        .font(.caption)
-                                        .foregroundStyle(Color.budgetTextMute)
                                 }
-                                Spacer()
-                                Text(AmountFormatter.kpi(line.amount))
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(Color.budgetText)
+                                .padding(.vertical, 9)
                             }
-                            .padding(.vertical, 9)
                         }
                         if line != activeIncomeLines.last {
                             Divider().overlay(Color.budgetBorder.opacity(0.6))

@@ -147,7 +147,8 @@ final class AuthSession {
         _ = try? await APIClient.shared.send(
             LogoutResponse.self,
             method: "POST",
-            path: "/budget/auth/logout"
+            path: "/budget/auth/logout",
+            assertion: false
         )
         let previousUserId = user?.id
         APIClient.shared.clearTokens()
@@ -299,7 +300,8 @@ final class AuthSession {
         let response: DeleteResponse = try await APIClient.shared.send(
             DeleteResponse.self,
             method: "DELETE",
-            path: "/budget/households/\(serverId)"
+            path: "/budget/households/\(serverId)",
+            assertion: true
         )
         guard response.success else {
             throw APIError.http(400, response.error ?? "Suppression refusée.")
@@ -329,7 +331,8 @@ final class AuthSession {
             AcceptResponse.self,
             method: "POST",
             path: "/budget/household/invite/accept",
-            body: ["token": token]
+            body: ["token": token],
+            assertion: true
         )
         guard response.success,
               let access = response.accessToken,
@@ -365,7 +368,8 @@ final class AuthSession {
             SwitchResponse.self,
             method: "POST",
             path: "/budget/auth/switch-household",
-            body: ["household_id": serverId]
+            body: ["household_id": serverId],
+            assertion: true
         )
         guard response.success,
               let access = response.accessToken,

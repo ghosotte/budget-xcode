@@ -23,7 +23,7 @@ struct TransactionsView: View {
     @Query(sort: \Category.sortOrder) private var categories: [Category]
 
     @State private var month = Calendar.current.startOfMonth(for: .now)
-    @State private var filter = TransactionFilter.all
+    @Binding var filter: TransactionFilter
     @State private var categoryFilter: Category?
     @State private var editTarget: TransactionItem?
 
@@ -286,7 +286,7 @@ private struct TransactionRow: View {
 }
 
 #Preview {
-    TransactionsView()
+    TransactionsView(filter: .constant(.all))
         .modelContainer(for: [
             Household.self, Category.self, Subcategory.self, IncomeCategory.self,
             BudgetExpenseLine.self, BudgetIncome.self, Expense.self,

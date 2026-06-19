@@ -6,9 +6,32 @@ enum AppTab: Hashable {
     case home, transactions, budget, history, settings
 }
 
-enum TransactionFormKind: Identifiable {
+enum TransactionFormKind: String, Identifiable, CaseIterable {
     case expense, income
     var id: Self { self }
+
+    var label: String {
+        switch self {
+        case .expense: return "Dépense"
+        case .income:  return "Revenu"
+        }
+    }
+}
+
+/// Conteneur du formulaire d'ajout avec bascule Dépense / Revenu intégrée.
+struct TransactionFormView: View {
+    @State private var kind: TransactionFormKind
+
+    init(initial: TransactionFormKind) {
+        _kind = State(initialValue: initial)
+    }
+
+    var body: some View {
+        switch kind {
+        case .expense: ExpenseFormView(kindSelection: $kind)
+        case .income:  IncomeFormView(kindSelection: $kind)
+        }
+    }
 }
 
 struct ContentView: View {
@@ -19,6 +42,13 @@ struct ContentView: View {
     @State private var network = NetworkMonitor.shared
     @State private var selectedTab = AppTab.home
     @State private var formKind: TransactionFormKind?
+    @State private var transactionsFilter = TransactionFilter.all
+
+    /// Type par défaut à l'ouverture du FAB : revenu si l'onglet Transactions est
+    /// filtré sur les revenus, sinon dépense.
+    private var defaultFormKind: TransactionFormKind {
+        selectedTab == .transactions && transactionsFilter == .incomes ? .income : .expense
+    }
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -29,8 +59,8 @@ struct ContentView: View {
             .tabItem { Label("Accueil", systemImage: "house.fill") }
             .tag(AppTab.home)
 
-            TransactionsView()
-                .tabItem { Label("Dépenses", systemImage: "list.bullet") }
+            TransactionsView(filter: $transactionsFilter)
+                .tabItem { Label("Transactions", systemImage: "list.bullet") }
                 .tag(AppTab.transactions)
 
             BudgetTabView()
@@ -49,18 +79,13 @@ struct ContentView: View {
         .preferredColorScheme(AppTheme(rawValue: themeRaw)?.colorScheme)
         .overlay(alignment: .bottomTrailing) {
             if selectedTab == .home || selectedTab == .transactions {
-                FABMenuButton { kind in
-                    formKind = kind
-                }
-                .padding(.trailing, 20)
-                .padding(.bottom, 90)
+                FABButton { formKind = defaultFormKind }
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 90)
             }
         }
         .sheet(item: $formKind) { kind in
-            switch kind {
-            case .expense: ExpenseFormView()
-            case .income:  IncomeFormView()
-            }
+            TransactionFormView(initial: kind)
         }
         .environment(authSession)
         .onOpenURL { url in
@@ -112,33 +137,19 @@ struct ContentView: View {
 
 // MARK: — FAB
 
-private struct FABMenuButton: View {
-    let onSelect: (TransactionFormKind) -> Void
+private struct FABButton: View {
+    let action: () -> Void
 
     var body: some View {
-        Menu {
-            Button { onSelect(.expense) } label: {
-                Label("Dépense", systemImage: "arrow.up")
-            }
-            Button { onSelect(.income) } label: {
-                Label("Revenu", systemImage: "arrow.down")
-            }
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "plus")
-                    .font(.system(size: 16, weight: .semibold))
-                Text("Dépense")
-                    .font(.system(size: 16, weight: .semibold))
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 15)
-            .background(Capsule().fill(Color.budgetPrimary))
-            .shadow(color: Color.budgetPrimary.opacity(0.35), radius: 10, y: 4)
-        } primaryAction: {
-            onSelect(.expense)
+        Button(action: action) {
+            Image(systemName: "plus")
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 58, height: 58)
+                .background(Circle().fill(Color.budgetPrimary))
+                .shadow(color: Color.budgetPrimary.opacity(0.35), radius: 10, y: 4)
         }
-        .menuIndicator(.hidden)
+        .accessibilityLabel("Ajouter une transaction")
     }
 }
 

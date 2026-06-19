@@ -46,7 +46,7 @@ struct HouseholdSwitcherView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Fermer") { dismiss() }
+                    CloseButton { dismiss() }
                 }
             }
         }

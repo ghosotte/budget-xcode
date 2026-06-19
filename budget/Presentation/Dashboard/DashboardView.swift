@@ -66,9 +66,26 @@ struct DashboardView: View {
         realIncomeTotal - realExpensesTotal
     }
 
+    // Dépenses prévisionnelles par catégorie : max(budget, réel) + réel non-budgété.
+    // Aligné sur le web (BudgetAppController::buildDashboardVars) — un sous-dépassement
+    // d'une catégorie ne compense pas le dépassement d'une autre.
+    private var projectedExpenses: Decimal {
+        let activeLines = budgetExpenseLines.filter { $0.household == household && $0.isActive(for: currentMonth) }
+        let budgetByCat = Dictionary(grouping: activeLines, by: \.category)
+            .mapValues { $0.reduce(Decimal(0)) { $0 + $1.amount } }
+        let realByCat = Dictionary(grouping: monthExpenses.filter { $0.status == .real }, by: \.category)
+            .mapValues { $0.reduce(Decimal(0)) { $0 + $1.amount } }
+
+        let allCategories = Set(budgetByCat.keys).union(realByCat.keys)
+        return allCategories.reduce(Decimal(0)) { total, category in
+            total + max(budgetByCat[category] ?? 0, realByCat[category] ?? 0)
+        }
+    }
+
     private var projectedBalance: Decimal {
-        let projectedIncome = realIncomeTotal + pendingIncomeTotal
-        let projectedExpenses = max(budgetExpensesTotal, realExpensesTotal + plannedExpensesTotal)
+        // Revenu prévu = config budget (inclut le budgété non encore encaissé),
+        // borné au réel+planifié si celui-ci dépasse le budget.
+        let projectedIncome = max(budgetIncomeTotal, realIncomeTotal + pendingIncomeTotal)
         return projectedIncome - projectedExpenses
     }
 
