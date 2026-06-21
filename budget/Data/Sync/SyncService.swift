@@ -200,35 +200,43 @@ enum SyncService {
 
         let households = try context.fetch(FetchDescriptor<Household>())
 
+        // Le foyer ACTIF est piloté par l'utilisateur (`isDefault`, persistant en SwiftData). On ne
+        // RÉASSIGNE `isDefault` que s'il n'existe aucun foyer actif valide (1ʳᵉ connexion / foyer
+        // actif devenu orphelin). Sinon on se contente de garantir l'existence/màj du foyer cloud
+        // courant sans changer la sélection : forcer `isDefault` ici réinitialisait à chaque
+        // démarrage le foyer actif (ex. foyer local anonyme) sur le foyer cloud.
+        let hasValidDefault = households.contains { $0.isDefault && !$0.isOrphan }
+
+        let connected: Household
         if let existing = households.first(where: { $0.serverId == server.id && $0.ownerUserId == userId }) {
             existing.name = server.name
             existing.currencyCode = server.currency
             existing.isAnonymous = false
-            for h in households { h.isDefault = (h == existing) }
-            return existing
-        }
-
-        if let legacy = households.first(where: { $0.serverId == server.id && $0.ownerUserId == nil }) {
+            connected = existing
+        } else if let legacy = households.first(where: { $0.serverId == server.id && $0.ownerUserId == nil }) {
             legacy.ownerUserId = userId
             legacy.isAnonymous = false
             legacy.name = server.name
             legacy.currencyCode = server.currency
-            for h in households { h.isDefault = (h == legacy) }
-            return legacy
+            connected = legacy
+        } else {
+            let household = Household(
+                serverId: server.id,
+                ownerUserId: userId,
+                isAnonymous: false,
+                name: server.name,
+                currencyCode: server.currency
+            )
+            household.members.append(HouseholdMember(displayName: "Moi", isMe: true))
+            context.insert(household)
+            connected = household
         }
 
-        let household = Household(
-            serverId: server.id,
-            ownerUserId: userId,
-            isAnonymous: false,
-            name: server.name,
-            currencyCode: server.currency
-        )
-        household.members.append(HouseholdMember(displayName: "Moi", isMe: true))
-        context.insert(household)
-        for h in households { h.isDefault = false }
-        household.isDefault = true
-        return household
+        if !hasValidDefault {
+            for h in households { h.isDefault = false }
+            connected.isDefault = true
+        }
+        return connected
     }
 
     // MARK: — Catégories (mapping serverId)

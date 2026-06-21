@@ -119,10 +119,11 @@ struct ContentView: View {
             authSession.bootstrap()
             SeedService.seedIfNeeded(context: modelContext)
             RecurringService.generateExpenses(context: modelContext)
-            // Foyer local (hors ligne) : la devise active vient du foyer par défaut.
-            // En authentifié, AuthSession a déjà appliqué la devise du foyer cloud au démarrage.
-            if !authSession.isAuthenticated,
-               let def = (try? modelContext.fetch(FetchDescriptor<Household>()))?.first(where: { $0.isDefault }) {
+            // Le foyer ACTIF (local `isDefault`, persistant) pilote devise + langue, qu'on soit
+            // hors ligne OU connecté : `bootstrap()` a posé celles du foyer cloud courant, mais le
+            // foyer actif peut être un foyer local (anonyme) distinct. On applique donc toujours
+            // celles du foyer actif local s'il existe → le choix de foyer survit au redémarrage.
+            if let def = (try? modelContext.fetch(FetchDescriptor<Household>()))?.first(where: { $0.isDefault }) {
                 Currency.setActive(def.currencyCode)
                 AppLocale.setActive(def.locale)
             }

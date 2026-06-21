@@ -279,8 +279,17 @@ final class AuthSession {
         serverHouseholds = response.households.map {
             ServerHousehold(id: $0.id, name: $0.name, currency: $0.currency ?? Currency.default, locale: $0.locale ?? AppLocale.default)
         }
-        if let currentId = response.currentHouseholdId,
-           let match = serverHouseholds.first(where: { $0.id == currentId }) {
+        // Préserve le foyer actif déjà sélectionné (le switch est lié au token) s'il existe
+        // toujours côté serveur : on rafraîchit ses métadonnées (nom/devise/langue) sans changer
+        // de foyer. `current_household_id` de GET /households peut renvoyer le foyer PAR DÉFAUT du
+        // compte plutôt que le foyer actif du token → l'utiliser uniquement en repli (aucun foyer
+        // local valide), sinon le démarrage réinitialisait le foyer actif sur le foyer par défaut.
+        if let existing = currentHousehold,
+           let refreshed = serverHouseholds.first(where: { $0.id == existing.id }) {
+            currentHousehold = refreshed
+            UserDefaults.standard.set(try? JSONEncoder().encode(refreshed), forKey: Self.householdKey)
+        } else if let currentId = response.currentHouseholdId,
+                  let match = serverHouseholds.first(where: { $0.id == currentId }) {
             currentHousehold = match
             UserDefaults.standard.set(try? JSONEncoder().encode(match), forKey: Self.householdKey)
         }
@@ -503,7 +512,13 @@ final class AuthSession {
             path: "/budget/auth/me"
         )
         guard response.success, let me = response.user else { throw APIError.notAuthenticated }
-        persist(user: me, household: response.currentHousehold)
+        // La SÉLECTION du foyer est pilotée par le client (foyer actif local), jamais par `/me`.
+        // `/me` ne sert qu'à confirmer la session : son `current_household` est PARTIEL (id + nom,
+        // sans `currency`/`locale`), donc `ServerHousehold` y applique ses défauts (locale "fr").
+        // L'adopter écrasait la langue réelle du foyer → le `didSet` repassait en français avant que
+        // `refreshHouseholds` ne rétablisse l'anglais (flash fr→en). On garde donc le foyer courant
+        // existant ; on n'adopte celui de `/me` qu'à défaut (aucun foyer encore sélectionné).
+        persist(user: me, household: currentHousehold ?? response.currentHousehold)
     }
 
     // MARK: — Privé
