@@ -9,6 +9,7 @@ struct DashboardView: View {
     @Environment(AuthSession.self) private var session
     @State private var showRecurringList = false
     @State private var showHouseholdSwitcher = false
+    @State private var showSearch = false
 
     @Query private var households: [Household]
     @Query private var expenses: [Expense]
@@ -135,6 +136,9 @@ struct DashboardView: View {
         .sheet(isPresented: $showHouseholdSwitcher) {
             HouseholdSwitcherView()
         }
+        .fullScreenCover(isPresented: $showSearch) {
+            SearchView()
+        }
         .task(id: currentMonth) {
             await MonthSyncService.refreshMonth(currentMonth, session: session, context: modelContext)
         }
@@ -234,7 +238,7 @@ struct DashboardView: View {
             Spacer()
             HStack(spacing: 14) {
                 Button {
-                    // Recherche : à implémenter
+                    showSearch = true
                 } label: {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 17, weight: .medium))
