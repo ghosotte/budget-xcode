@@ -10,29 +10,29 @@ struct LoginView: View {
 
         var label: String {
             switch self {
-            case .login:    return "Connexion"
-            case .register: return "Inscription"
+            case .login:    return NSLocalizedString("Connexion", comment: "")
+            case .register: return NSLocalizedString("Inscription", comment: "")
             }
         }
 
         var eyebrow: String? {
             switch self {
-            case .login:    return "CONNEXION"
+            case .login:    return NSLocalizedString("CONNEXION", comment: "")
             case .register: return nil
             }
         }
 
         var title: String {
             switch self {
-            case .login:    return "Bon retour"
-            case .register: return "Créez votre compte"
+            case .login:    return NSLocalizedString("Bon retour", comment: "")
+            case .register: return NSLocalizedString("Créez votre compte", comment: "")
             }
         }
 
         var actionTitle: String {
             switch self {
-            case .login:    return "Se connecter"
-            case .register: return "Créer mon compte"
+            case .login:    return NSLocalizedString("Se connecter", comment: "")
+            case .register: return NSLocalizedString("Créer mon compte", comment: "")
             }
         }
     }
@@ -40,6 +40,7 @@ struct LoginView: View {
     @Environment(AuthSession.self) private var session
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var mode = Mode.login
     @State private var email = ""
@@ -115,11 +116,14 @@ struct LoginView: View {
             Button {
                 startGoogleSignIn()
             } label: {
-                Text("G")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundStyle(Color(hex: "#4285F4"))
+                GoogleLogo()
+                    .frame(width: 22, height: 22)
                     .frame(width: 56, height: 56)
-                    .background(Color.budgetSurfaceMute, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(googleButtonBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(googleButtonBorder, lineWidth: 1)
+                    }
             }
             .buttonStyle(.plain)
             .disabled(isWorking)
@@ -139,6 +143,14 @@ struct LoginView: View {
             .accessibilityLabel("Continuer avec Apple")
             Spacer()
         }
+    }
+
+    private var googleButtonBackground: Color {
+        colorScheme == .dark ? Color(hex: "#131314") : Color(hex: "#FFFFFF")
+    }
+
+    private var googleButtonBorder: Color {
+        colorScheme == .dark ? Color(hex: "#8E918F") : Color(hex: "#747775")
     }
 
     private var divider: some View {
@@ -216,12 +228,12 @@ struct LoginView: View {
         errorMessage = nil
 
         guard let clientID = Bundle.main.googleClientID else {
-            errorMessage = "Client OAuth iOS Google manquant dans Info.plist."
+            errorMessage = NSLocalizedString("Client OAuth iOS Google manquant dans Info.plist.", comment: "")
             return
         }
 
         guard let presentingViewController = UIApplication.shared.keyWindowRootViewController else {
-            errorMessage = "Impossible d'ouvrir la connexion Google."
+            errorMessage = NSLocalizedString("Impossible d'ouvrir la connexion Google.", comment: "")
             return
         }
 
@@ -241,7 +253,7 @@ struct LoginView: View {
 
                 guard let idToken = result?.user.idToken?.tokenString else {
                     isWorking = false
-                    errorMessage = "Google n'a pas renvoyé d'id token."
+                    errorMessage = NSLocalizedString("Google n'a pas renvoyé d'id token.", comment: "")
                     return
                 }
 
@@ -334,7 +346,7 @@ struct LoginView: View {
             try await SyncService.pullCategories(context: modelContext)
             try? modelContext.save()
         } catch {
-            errorMessage = "Connecté, mais la synchronisation a échoué : \(error.localizedDescription)"
+            errorMessage = String(format: NSLocalizedString("Connecté, mais la synchronisation a échoué : %@", comment: ""), error.localizedDescription)
         }
     }
 }
@@ -384,6 +396,81 @@ private struct AuthFieldLabel<Content: View>: View {
                         .stroke(Color.budgetBorder, lineWidth: 1)
                 }
         }
+    }
+}
+
+private struct GoogleLogo: View {
+    var body: some View {
+        Canvas { context, size in
+            let side = min(size.width, size.height)
+            let offset = CGPoint(
+                x: (size.width - side) / 2,
+                y: (size.height - side) / 2
+            )
+            let transform = CGAffineTransform(translationX: offset.x, y: offset.y)
+                .scaledBy(x: side / 48, y: side / 48)
+
+            context.fill(GoogleLogoPath.red.applying(transform), with: .color(Color(hex: "#EA4335")))
+            context.fill(GoogleLogoPath.blue.applying(transform), with: .color(Color(hex: "#4285F4")))
+            context.fill(GoogleLogoPath.yellow.applying(transform), with: .color(Color(hex: "#FBBC05")))
+            context.fill(GoogleLogoPath.green.applying(transform), with: .color(Color(hex: "#34A853")))
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+private enum GoogleLogoPath {
+    static var red: Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 24, y: 9.5))
+        path.addCurve(to: CGPoint(x: 33.21, y: 13.1), control1: CGPoint(x: 27.54, y: 9.5), control2: CGPoint(x: 30.71, y: 10.72))
+        path.addLine(to: CGPoint(x: 40.06, y: 6.25))
+        path.addCurve(to: CGPoint(x: 24, y: 0), control1: CGPoint(x: 35.9, y: 2.38), control2: CGPoint(x: 30.47, y: 0))
+        path.addCurve(to: CGPoint(x: 2.56, y: 13.22), control1: CGPoint(x: 14.62, y: 0), control2: CGPoint(x: 6.51, y: 5.38))
+        path.addLine(to: CGPoint(x: 10.54, y: 19.41))
+        path.addCurve(to: CGPoint(x: 24, y: 9.5), control1: CGPoint(x: 12.43, y: 13.72), control2: CGPoint(x: 17.74, y: 9.5))
+        path.closeSubpath()
+        return path
+    }
+
+    static var blue: Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 46.98, y: 24.55))
+        path.addCurve(to: CGPoint(x: 46.6, y: 20), control1: CGPoint(x: 46.98, y: 22.98), control2: CGPoint(x: 46.83, y: 21.46))
+        path.addLine(to: CGPoint(x: 24, y: 20))
+        path.addLine(to: CGPoint(x: 24, y: 29.02))
+        path.addLine(to: CGPoint(x: 36.94, y: 29.02))
+        path.addCurve(to: CGPoint(x: 32.16, y: 36.2), control1: CGPoint(x: 36.36, y: 31.98), control2: CGPoint(x: 34.68, y: 34.5))
+        path.addLine(to: CGPoint(x: 39.89, y: 42.2))
+        path.addCurve(to: CGPoint(x: 46.98, y: 24.55), control1: CGPoint(x: 44.4, y: 38.02), control2: CGPoint(x: 46.98, y: 31.84))
+        path.closeSubpath()
+        return path
+    }
+
+    static var yellow: Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 10.53, y: 28.59))
+        path.addCurve(to: CGPoint(x: 9.77, y: 24), control1: CGPoint(x: 10.05, y: 27.14), control2: CGPoint(x: 9.77, y: 25.6))
+        path.addCurve(to: CGPoint(x: 10.53, y: 19.41), control1: CGPoint(x: 9.77, y: 22.4), control2: CGPoint(x: 10.04, y: 20.86))
+        path.addLine(to: CGPoint(x: 2.55, y: 13.22))
+        path.addCurve(to: CGPoint(x: 0, y: 24), control1: CGPoint(x: 0.92, y: 16.46), control2: CGPoint(x: 0, y: 20.12))
+        path.addCurve(to: CGPoint(x: 2.56, y: 34.78), control1: CGPoint(x: 0, y: 27.88), control2: CGPoint(x: 0.92, y: 31.54))
+        path.addLine(to: CGPoint(x: 10.53, y: 28.59))
+        path.closeSubpath()
+        return path
+    }
+
+    static var green: Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 24, y: 48))
+        path.addCurve(to: CGPoint(x: 39.89, y: 42.19), control1: CGPoint(x: 30.48, y: 48), control2: CGPoint(x: 35.93, y: 45.87))
+        path.addLine(to: CGPoint(x: 32.16, y: 36.19))
+        path.addCurve(to: CGPoint(x: 24, y: 38.49), control1: CGPoint(x: 30.01, y: 37.64), control2: CGPoint(x: 27.24, y: 38.49))
+        path.addCurve(to: CGPoint(x: 10.53, y: 28.58), control1: CGPoint(x: 17.74, y: 38.49), control2: CGPoint(x: 12.43, y: 34.27))
+        path.addLine(to: CGPoint(x: 2.55, y: 34.77))
+        path.addCurve(to: CGPoint(x: 24, y: 48), control1: CGPoint(x: 6.51, y: 42.62), control2: CGPoint(x: 14.62, y: 48))
+        path.closeSubpath()
+        return path
     }
 }
 

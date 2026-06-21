@@ -7,8 +7,8 @@ struct BudgetTabView: View {
 
         var label: String {
             switch self {
-            case .budget: return "Budget"
-            case .bilan:  return "Bilan"
+            case .budget: return NSLocalizedString("Budget", comment: "")
+            case .bilan:  return NSLocalizedString("Bilan", comment: "")
             }
         }
     }

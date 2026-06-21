@@ -7,12 +7,14 @@ enum SyncService {
     struct CategoryDTO: Decodable {
         let id: Int
         let name: String
+        let nameEn: String?
         let emoji: String
         let sortOrder: Int
         let subcategories: [SubcategoryDTO]?
 
         enum CodingKeys: String, CodingKey {
             case id, name, emoji, subcategories
+            case nameEn = "name_en"
             case sortOrder = "sort_order"
         }
     }
@@ -20,11 +22,13 @@ enum SyncService {
     struct SubcategoryDTO: Decodable {
         let id: Int
         let name: String
+        let nameEn: String?
         let emoji: String
         let sortOrder: Int
 
         enum CodingKeys: String, CodingKey {
             case id, name, emoji
+            case nameEn = "name_en"
             case sortOrder = "sort_order"
         }
     }
@@ -198,6 +202,7 @@ enum SyncService {
 
         if let existing = households.first(where: { $0.serverId == server.id && $0.ownerUserId == userId }) {
             existing.name = server.name
+            existing.currencyCode = server.currency
             existing.isAnonymous = false
             for h in households { h.isDefault = (h == existing) }
             return existing
@@ -207,6 +212,7 @@ enum SyncService {
             legacy.ownerUserId = userId
             legacy.isAnonymous = false
             legacy.name = server.name
+            legacy.currencyCode = server.currency
             for h in households { h.isDefault = (h == legacy) }
             return legacy
         }
@@ -215,7 +221,8 @@ enum SyncService {
             serverId: server.id,
             ownerUserId: userId,
             isAnonymous: false,
-            name: server.name
+            name: server.name,
+            currencyCode: server.currency
         )
         household.members.append(HouseholdMember(displayName: "Moi", isMe: true))
         context.insert(household)
@@ -257,6 +264,8 @@ enum SyncService {
             }
             category.serverId = dto.id
             category.name = dto.name
+            // Ne pas écraser une traduction connue (bundle) si le serveur renvoie null.
+            category.nameEn = dto.nameEn ?? category.nameEn
             category.emoji = dto.emoji
             category.sortOrder = dto.sortOrder
             category.isSystem = true
@@ -272,6 +281,7 @@ enum SyncService {
                 }
                 sub.serverId = subDTO.id
                 sub.name = subDTO.name
+                sub.nameEn = subDTO.nameEn ?? sub.nameEn
                 sub.emoji = subDTO.emoji
                 sub.sortOrder = subDTO.sortOrder
                 sub.isSystem = true
@@ -293,6 +303,7 @@ enum SyncService {
             }
             cat.serverId = dto.id
             cat.name = dto.name
+            cat.nameEn = dto.nameEn ?? cat.nameEn
             cat.emoji = dto.emoji
             cat.sortOrder = dto.sortOrder
             cat.isSystem = true

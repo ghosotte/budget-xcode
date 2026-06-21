@@ -8,8 +8,8 @@ struct HistoryView: View {
         var id: String { rawValue }
         var label: String {
             switch self {
-            case .depenses: return "Dépenses"
-            case .entrees:  return "Entrées"
+            case .depenses: return NSLocalizedString("Dépenses", comment: "")
+            case .entrees:  return NSLocalizedString("Entrées", comment: "")
             }
         }
     }
@@ -197,7 +197,7 @@ struct HistoryView: View {
                         guard subTotal > 0 else { return nil }
                         return SubcategoryGroup(
                             id: sub.id,
-                            name: sub.name,
+                            name: sub.displayName,
                             emoji: sub.emoji,
                             total: subTotal,
                             avg: subTotal / Decimal(monthsCount)
@@ -207,7 +207,7 @@ struct HistoryView: View {
 
                 return CategoryGroup(
                     id: cat?.id ?? UUID(),
-                    name: cat?.name ?? "Sans catégorie",
+                    name: cat?.displayName ?? NSLocalizedString("Sans catégorie", comment: ""),
                     emoji: cat?.emoji ?? "",
                     total: total,
                     avg: avg,
@@ -233,7 +233,7 @@ struct HistoryView: View {
                 let pct = NSDecimalNumber(decimal: total / totalAll).doubleValue * 100
                 return CategoryGroup(
                     id: cat?.id ?? UUID(),
-                    name: cat?.name ?? "Sans catégorie",
+                    name: cat?.displayName ?? NSLocalizedString("Sans catégorie", comment: ""),
                     emoji: cat?.emoji ?? "",
                     total: total,
                     avg: avg,
@@ -426,7 +426,7 @@ struct HistoryView: View {
                         ForEach(categories) { cat in
                             categoryRow(
                                 emoji: cat.emoji,
-                                name: cat.name,
+                                name: cat.displayName,
                                 isOn: selectedCategoryIds.contains(cat.id)
                             ) {
                                 toggle(selectedCategoryIds, id: cat.id) { newSet in
@@ -438,7 +438,7 @@ struct HistoryView: View {
                         ForEach(incomeCategories) { cat in
                             categoryRow(
                                 emoji: cat.emoji,
-                                name: cat.name,
+                                name: cat.displayName,
                                 isOn: selectedIncomeCategoryIds.contains(cat.id)
                             ) {
                                 toggle(selectedIncomeCategoryIds, id: cat.id) { newSet in
@@ -529,7 +529,7 @@ struct HistoryView: View {
         .background(cardBackground)
     }
 
-    private func statColumn(label: String, value: Decimal, monthLabel: String?, tint: Color = .budgetText) -> some View {
+    private func statColumn(label: LocalizedStringKey, value: Decimal, monthLabel: String?, tint: Color = .budgetText) -> some View {
         VStack(spacing: 4) {
             Text(label)
                 .font(.caption2.weight(.semibold))

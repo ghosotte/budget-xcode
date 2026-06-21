@@ -63,7 +63,7 @@ struct BilanView: View {
                     let subBudget = lines.filter { $0.subcategory == sub }.reduce(Decimal(0)) { $0 + $1.amount }
                     let subReal = catExpenses.filter { $0.subcategory == sub }.reduce(Decimal(0)) { $0 + $1.amount }
                     guard subBudget > 0 || subReal > 0 else { return nil }
-                    return BilanRowData.Sub(id: sub.id, name: sub.name, budget: subBudget, real: subReal)
+                    return BilanRowData.Sub(id: sub.id, name: sub.displayName, budget: subBudget, real: subReal)
                 }
 
             if !subs.isEmpty {
@@ -77,7 +77,7 @@ struct BilanView: View {
             return BilanRowData(
                 id: category.id,
                 emoji: category.emoji,
-                name: category.name,
+                name: category.displayName,
                 budget: budget,
                 real: real,
                 subs: subs

@@ -206,11 +206,12 @@
 				};
 			};
 			buildConfigurationList = A48C2D762FD30E370068D400 /* Build configuration list for PBXProject "budget" */;
-			developmentRegion = en;
+			developmentRegion = fr;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				fr,
 			);
 			mainGroup = A48C2D722FD30E370068D400;
 			minimizedProjectReferenceProxies = 1;

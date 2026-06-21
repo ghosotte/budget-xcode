@@ -51,8 +51,8 @@ enum TransactionItem: Identifiable {
 
     var categoryName: String {
         switch self {
-        case .expense(let e): return e.category?.name ?? "Sans catégorie"
-        case .income(let i):  return i.incomeCategory?.name ?? "Sans catégorie"
+        case .expense(let e): return e.category?.displayName ?? NSLocalizedString("Sans catégorie", comment: "")
+        case .income(let i):  return i.incomeCategory?.displayName ?? NSLocalizedString("Sans catégorie", comment: "")
         }
     }
 

@@ -7,8 +7,8 @@ enum EditScope: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .thisMonthOnly: return "Ce mois seulement"
-        case .fromThisMonth: return "À partir de ce mois"
+        case .thisMonthOnly: return NSLocalizedString("Ce mois seulement", comment: "")
+        case .fromThisMonth: return NSLocalizedString("À partir de ce mois", comment: "")
         }
     }
 }

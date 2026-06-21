@@ -14,6 +14,12 @@ struct HouseholdDetailView: View {
     @State private var isInviting = false
     @State private var revokingId: Int?
     @State private var errorMessage: String?
+    @State private var editedName = ""
+    @State private var savingName = false
+    @State private var currencyCode = Currency.default
+    @State private var savingCurrency = false
+    @State private var localeCode = AppLocale.default
+    @State private var savingLocale = false
 
     struct Member: Identifiable {
         let id: Int
@@ -33,13 +39,43 @@ struct HouseholdDetailView: View {
     var body: some View {
         List {
             Section {
-                LabeledContent("Nom", value: household.name)
-                if let serverId = household.serverId {
-                    LabeledContent("ID serveur", value: String(serverId))
+                HStack {
+                    TextField("Nom", text: $editedName)
+                        .submitLabel(.done)
+                        .onSubmit { Task { await saveName() } }
+                    if savingName { ProgressView() }
                 }
                 LabeledContent("Type", value: household.isAnonymous ? "Local" : "Cloud")
             } header: {
                 Text("Foyer")
+            }
+
+            Section {
+                Picker("Langue", selection: $localeCode) {
+                    ForEach(AppLocale.supported, id: \.self) { code in
+                        Text(AppLocale.label(for: code)).tag(code)
+                    }
+                }
+                .disabled(savingLocale)
+                .onChange(of: localeCode) { _, newValue in
+                    Task { await saveLocale(newValue) }
+                }
+            } header: {
+                Text("Langue")
+            }
+
+            Section {
+                Picker("Devise", selection: $currencyCode) {
+                    ForEach(Currency.supported, id: \.self) { code in
+                        Text(Currency.label(for: code)).tag(code)
+                    }
+                }
+                .disabled(savingCurrency)
+                .onChange(of: currencyCode) { _, newValue in
+                    Task { await saveCurrency(newValue) }
+                }
+            } header: {
+                Text("Devise")
             }
 
             if !household.isAnonymous {
@@ -168,9 +204,82 @@ struct HouseholdDetailView: View {
         .navigationTitle(household.name)
         .navigationBarTitleDisplayMode(.inline)
         .task {
+            editedName = household.name
+            currencyCode = household.currencyCode
+            localeCode = household.locale
             await loadDetail()
             await loadInvitations()
         }
+    }
+
+    private func saveName() async {
+        let name = editedName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty, name != household.name else {
+            editedName = household.name  // reset trim/empty
+            return
+        }
+        savingName = true
+        errorMessage = nil
+        if let serverId = household.serverId {
+            do {
+                try await session.renameCloudHousehold(serverId: serverId, name: name)
+                household.name = name
+                try? modelContext.save()
+            } catch is URLError {
+                PendingHouseholdOpStore.enqueueRename(serverId: serverId, name: name)
+                household.name = name
+                try? modelContext.save()
+                errorMessage = NSLocalizedString("Hors ligne. Renommage enregistré, sera synchronisé plus tard.", comment: "")
+            } catch {
+                errorMessage = error.localizedDescription
+                editedName = household.name
+            }
+        } else {
+            household.name = name
+            try? modelContext.save()
+        }
+        savingName = false
+    }
+
+    private func saveLocale(_ code: String) async {
+        guard code != household.locale else { return }
+        savingLocale = true
+        errorMessage = nil
+        let previous = household.locale
+        do {
+            if !household.isAnonymous, let serverId = household.serverId {
+                try await session.setLocaleCloud(serverId: serverId, locale: code)
+            }
+            household.locale = code
+            try? modelContext.save()
+            print("🌐LANG saveLocale code=\(code) isDefault=\(household.isDefault) isAnonymous=\(household.isAnonymous)")
+            // Toujours appliquer : l'utilisateur change la langue depuis l'UI, on bascule
+            // l'app immédiatement (le gate `isDefault` empêchait le switch sur foyer local).
+            AppLocale.setActive(code)
+        } catch {
+            errorMessage = error.localizedDescription
+            localeCode = previous  // revert picker
+        }
+        savingLocale = false
+    }
+
+    private func saveCurrency(_ code: String) async {
+        guard code != household.currencyCode else { return }
+        savingCurrency = true
+        errorMessage = nil
+        let previous = household.currencyCode
+        do {
+            if !household.isAnonymous, let serverId = household.serverId {
+                try await session.setCurrencyCloud(serverId: serverId, currency: code)
+            }
+            household.currencyCode = code
+            try? modelContext.save()
+            if household.isDefault { Currency.setActive(code) }
+        } catch {
+            errorMessage = error.localizedDescription
+            currencyCode = previous  // revert picker
+        }
+        savingCurrency = false
     }
 
     private func loadDetail() async {
@@ -195,6 +304,8 @@ struct HouseholdDetailView: View {
                     }
                     let id: Int
                     let name: String
+                    let currency: String?
+                    let locale: String?
                     let members: [MemberDTO]
                 }
                 let success: Bool
@@ -208,10 +319,22 @@ struct HouseholdDetailView: View {
             members = response.household.members.map {
                 Member(
                     id: $0.userId,
-                    firstName: $0.firstName ?? "Sans nom",
+                    firstName: $0.firstName ?? NSLocalizedString("Sans nom", comment: ""),
                     isMe: $0.isMe,
                     joinedAt: $0.joinedAt
                 )
+            }
+            if let serverCurrency = response.household.currency {
+                household.currencyCode = serverCurrency
+                try? modelContext.save()
+                if currencyCode != serverCurrency { currencyCode = serverCurrency }
+                if household.isDefault { Currency.setActive(serverCurrency) }
+            }
+            if let serverLocale = response.household.locale {
+                household.locale = serverLocale
+                try? modelContext.save()
+                if localeCode != serverLocale { localeCode = serverLocale }
+                if household.isDefault { AppLocale.setActive(serverLocale) }
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -296,7 +419,7 @@ struct HouseholdDetailView: View {
                 path: "/budget/household/invitations/\(invitation.id)/revoke"
             )
             guard response.success else {
-                errorMessage = response.error ?? "Échec révocation."
+                errorMessage = response.error ?? NSLocalizedString("Échec révocation.", comment: "")
                 revokingId = nil
                 return
             }

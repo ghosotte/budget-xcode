@@ -51,7 +51,7 @@ struct RecurringFormView: View {
                         TextField("0,00", text: $amountText)
                             .keyboardType(.decimalPad)
                             .font(.title2.weight(.semibold))
-                        Text("€ / mois")
+                        Text("\(AmountFormatter.currencySymbol) / mois")
                             .foregroundStyle(Color.budgetTextMute)
                     }
                 }
@@ -66,14 +66,14 @@ struct RecurringFormView: View {
                     Picker("Catégorie", selection: $category) {
                         Text("Aucune").tag(Category?.none)
                         ForEach(categories) { cat in
-                            Text("\(cat.emoji) \(cat.name)").tag(Optional(cat))
+                            Text("\(cat.emoji) \(cat.displayName)").tag(Optional(cat))
                         }
                     }
                     if !sortedSubcategories.isEmpty {
                         Picker("Sous-catégorie", selection: $subcategory) {
                             Text("Aucune").tag(Subcategory?.none)
                             ForEach(sortedSubcategories) { sub in
-                                Text(sub.name).tag(Optional(sub))
+                                Text(sub.displayName).tag(Optional(sub))
                             }
                         }
                     }

@@ -3,15 +3,12 @@ import SwiftData
 
 struct SettingsView: View {
     @AppStorage("appTheme") private var themeRaw = AppTheme.system.rawValue
-    @AppStorage("currencySymbol") private var currencySymbol = "€"
     @AppStorage("lastSyncAt") private var lastSyncAt: Double = 0
 
     @Environment(AuthSession.self) private var session
     @Environment(\.modelContext) private var modelContext
 
     @Query private var households: [Household]
-
-    private static let currencies = ["€", "$", "£", "CHF"]
 
     private var activeHouseholdName: String {
         (households.first(where: \.isDefault) ?? households.first)?.name ?? SeedService.defaultHouseholdName
@@ -52,15 +49,6 @@ struct SettingsView: View {
                     .listRowBackground(Color.budgetSurface)
                 }
 
-                Section("Devise") {
-                    Picker("Symbole", selection: $currencySymbol) {
-                        ForEach(Self.currencies, id: \.self) { symbol in
-                            Text(symbol).tag(symbol)
-                        }
-                    }
-                    .listRowBackground(Color.budgetSurface)
-                }
-
                 Section {
                 } footer: {
                     Text(appVersion)
@@ -84,7 +72,7 @@ struct SettingsView: View {
                         .font(.system(size: 28))
                         .foregroundStyle(Color.budgetPrimary)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(session.user?.firstName ?? session.user?.email ?? "Connecté")
+                        Text(session.user?.firstName ?? session.user?.email ?? NSLocalizedString("Connecté", comment: ""))
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.budgetText)
                         Text(session.user?.email ?? "")

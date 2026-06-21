@@ -6,8 +6,8 @@ enum Frequency: String, Codable, CaseIterable {
 
     var label: String {
         switch self {
-        case .monthly:  return "Mensuelle"
-        case .punctual: return "Ponctuelle"
+        case .monthly:  return NSLocalizedString("Mensuelle", comment: "")
+        case .punctual: return NSLocalizedString("Ponctuelle", comment: "")
         }
     }
 }
@@ -25,8 +25,8 @@ enum ExpenseStatus: String, Codable, CaseIterable {
 
     var label: String {
         switch self {
-        case .real:    return "Réel"
-        case .planned: return "Prévu"
+        case .real:    return NSLocalizedString("Réel", comment: "")
+        case .planned: return NSLocalizedString("Prévu", comment: "")
         }
     }
 }

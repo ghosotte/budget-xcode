@@ -3,7 +3,7 @@ import SwiftData
 
 enum SeedService {
 
-    static let defaultHouseholdName = "Maison"
+    static var defaultHouseholdName: String { NSLocalizedString("Maison", comment: "") }
     private static let bootstrapResourceName = "BudgetBootstrapCategories"
 
     private struct BootstrapCatalog: Decodable {
@@ -18,6 +18,7 @@ enum SeedService {
     private struct BootstrapCategory: Decodable {
         let id: Int
         let name: String
+        let nameEn: String?
         let emoji: String
         let sortOrder: Int
         let isSystem: Bool?
@@ -26,6 +27,7 @@ enum SeedService {
 
         enum CodingKeys: String, CodingKey {
             case id, name, emoji, subcategories
+            case nameEn = "name_en"
             case sortOrder = "sort_order"
             case isSystem = "is_system"
             case isActive = "is_active"
@@ -42,8 +44,14 @@ enum SeedService {
     private static func seedDefaultHouseholdIfNeeded(context: ModelContext) {
         let count = (try? context.fetchCount(FetchDescriptor<Household>())) ?? 0
         guard count == 0 else { return }
-        let household = Household(isAnonymous: true, name: defaultHouseholdName, isDefault: true)
-        let me = HouseholdMember(displayName: "Moi", isMe: true)
+        let household = Household(
+            isAnonymous: true,
+            name: defaultHouseholdName,
+            currencyCode: Currency.systemDefault(),
+            locale: AppLocale.systemDefault(),
+            isDefault: true
+        )
+        let me = HouseholdMember(displayName: NSLocalizedString("Moi", comment: ""), isMe: true)
         household.members.append(me)
         context.insert(household)
     }
@@ -57,6 +65,7 @@ enum SeedService {
             let category = Category(
                 serverId: item.id,
                 name: item.name,
+                nameEn: item.nameEn,
                 emoji: item.emoji,
                 sortOrder: item.sortOrder,
                 isActive: item.isActive ?? true,
@@ -66,6 +75,7 @@ enum SeedService {
                 let sub = Subcategory(
                     serverId: subItem.id,
                     name: subItem.name,
+                    nameEn: subItem.nameEn,
                     emoji: subItem.emoji,
                     sortOrder: subItem.sortOrder,
                     isSystem: subItem.isSystem ?? true
@@ -85,6 +95,7 @@ enum SeedService {
             context.insert(IncomeCategory(
                 serverId: item.id,
                 name: item.name,
+                nameEn: item.nameEn,
                 emoji: item.emoji,
                 sortOrder: item.sortOrder,
                 isSystem: item.isSystem ?? true

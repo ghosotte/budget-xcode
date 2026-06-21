@@ -2,312 +2,1376 @@
     "version": 1,
     "generated_at": "2026-06-10",
     "expenses": {
-      "categories": [
-        {
-          "id": 1,
-          "name": "Logement",
-          "emoji": "🏠",
-          "sort_order": 1,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 1, "name": "Loyer", "emoji": "🏘️", "sort_order": 1, "is_system": true },
-            { "id": 2, "name": "Charges copro", "emoji": "🏢", "sort_order": 2, "is_system": true },
-            { "id": 5, "name": "Entretien", "emoji": "🔧", "sort_order": 3, "is_system": true },
-            { "id": 99, "name": "Assurance habitation", "emoji": "🛡️", "sort_order": 4, "is_system": true },
-            { "id": 100, "name": "Charges diverses", "emoji": "📋", "sort_order": 5, "is_system": true },
-            { "id": 101, "name": "Chauffage", "emoji": "🔥", "sort_order": 6, "is_system": true },
-            { "id": 103, "name": "Eau", "emoji": "💧", "sort_order": 7, "is_system": true },
-            { "id": 104, "name": "Électricité", "emoji": "⚡", "sort_order": 8, "is_system": true },
-            { "id": 106, "name": "Gaz", "emoji": "🔥", "sort_order": 9, "is_system": true },
-            { "id": 107, "name": "Logement - Autres", "emoji": "📦", "sort_order": 10, "is_system": true }
-          ]
-        },
-        {
-          "id": 2,
-          "name": "Alimentation & Restauration",
-          "emoji": "🛒",
-          "sort_order": 2,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 39, "name": "Alimentation - Autres", "emoji": "📦", "sort_order": 1, "is_system": true },
-            { "id": 151, "name": "Boulangerie", "emoji": "🥐", "sort_order": 2, "is_system": true },
-            { "id": 40, "name": "Café", "emoji": "☕", "sort_order": 3, "is_system": true },
-            { "id": 152, "name": "Cantine", "emoji": "🏫", "sort_order": 4, "is_system": true },
-            { "id": 153, "name": "Livraison", "emoji": "🛵", "sort_order": 5, "is_system": true },
-            { "id": 7, "name": "Restaurants", "emoji": "🍽️", "sort_order": 6, "is_system": true },
-            { "id": 58, "name": "Restauration rapide", "emoji": "🍔", "sort_order": 7, "is_system": true },
-            { "id": 6, "name": "Supermarché / Epicerie", "emoji": "🛒", "sort_order": 8, "is_system": true }
-          ]
-        },
-        {
-          "id": 3,
-          "name": "Auto & Transports",
-          "emoji": "🚗",
-          "sort_order": 3,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 50, "name": "Assurance véhicule", "emoji": "🛡️", "sort_order": 1, "is_system": true },
-            { "id": 51, "name": "Auto & Transports - Autres", "emoji": "📦", "sort_order": 2, "is_system": true },
-            { "id": 12, "name": "Billets d'avion", "emoji": "✈️", "sort_order": 3, "is_system": true },
-            { "id": 52, "name": "Billets de train", "emoji": "🚆", "sort_order": 4, "is_system": true },
-            { "id": 59, "name": "Transports en commun", "emoji": "🚌", "sort_order": 5, "is_system": true },
-            { "id": 154, "name": "Taxi / VTC", "emoji": "🚕", "sort_order": 6, "is_system": true },
-            { "id": 53, "name": "Carburant", "emoji": "⛽", "sort_order": 7, "is_system": true },
-            { "id": 54, "name": "Entretien véhicule", "emoji": "🔧", "sort_order": 8, "is_system": true },
-            { "id": 55, "name": "Location de véhicule", "emoji": "🚙", "sort_order": 9, "is_system": true },
-            { "id": 56, "name": "Péages", "emoji": "🛣️", "sort_order": 10, "is_system": true },
-            { "id": 57, "name": "Stationnement", "emoji": "🅿️", "sort_order": 11, "is_system": true }
-          ]
-        },
-        {
-          "id": 4,
-          "name": "Santé",
-          "emoji": "💊",
-          "sort_order": 4,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 14, "name": "Dentiste", "emoji": "🦷", "sort_order": 1, "is_system": true },
-            { "id": 122, "name": "Médecin", "emoji": "👨‍⚕️", "sort_order": 2, "is_system": true },
-            { "id": 148, "name": "Analyses / examens", "emoji": "🔬", "sort_order": 3, "is_system": true },
-            { "id": 149, "name": "Kiné / ostéo", "emoji": "🙆", "sort_order": 4, "is_system": true },
-            { "id": 150, "name": "Lunettes / lentilles", "emoji": "👓", "sort_order": 5, "is_system": true },
-            { "id": 123, "name": "Opticien / Ophtalmo", "emoji": "👁️", "sort_order": 6, "is_system": true },
-            { "id": 15, "name": "Pharmacie", "emoji": "💊", "sort_order": 7, "is_system": true },
-            { "id": 16, "name": "Mutuelle", "emoji": "🛡️", "sort_order": 8, "is_system": true },
-            { "id": 124, "name": "Santé - Autres", "emoji": "📦", "sort_order": 9, "is_system": true }
-          ]
-        },
-        {
-          "id": 5,
-          "name": "Loisirs & sorties",
-          "emoji": "🎬",
-          "sort_order": 5,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 18, "name": "Bars / Clubs", "emoji": "🍸", "sort_order": 1, "is_system": true },
-            { "id": 19, "name": "Culture & cinéma", "emoji": "🎬", "sort_order": 2, "is_system": true },
-            { "id": 20, "name": "Voyages / Vacances", "emoji": "✈️", "sort_order": 3, "is_system": true },
-            { "id": 21, "name": "Sport", "emoji": "🏋️", "sort_order": 4, "is_system": true },
-            { "id": 108, "name": "Sports d'hiver", "emoji": "⛷️", "sort_order": 5, "is_system": true },
-            { "id": 109, "name": "Loisirs & sorties - Autres", "emoji": "📦", "sort_order": 6, "is_system": true },
-            { "id": 110, "name": "Hôtels", "emoji": "🏨", "sort_order": 7, "is_system": true },
-            { "id": 111, "name": "Hobbies", "emoji": "🎨", "sort_order": 8, "is_system": true },
-            { "id": 112, "name": "Divertissements", "emoji": "🎮", "sort_order": 9, "is_system": true }
-          ]
-        },
-        {
-          "id": 6,
-          "name": "Abonnements",
-          "emoji": "📱",
-          "sort_order": 6,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 36, "name": "Abonnements - Autres", "emoji": "📦", "sort_order": 1, "is_system": true },
-            { "id": 37, "name": "Câble / Satellite", "emoji": "📡", "sort_order": 2, "is_system": true },
-            { "id": 143, "name": "Internet", "emoji": "🌐", "sort_order": 3, "is_system": true },
-            { "id": 144, "name": "Logiciels / SaaS", "emoji": "💻", "sort_order": 4, "is_system": true },
-            { "id": 145, "name": "Presse / magazines", "emoji": "📰", "sort_order": 5, "is_system": true },
-            { "id": 146, "name": "Streaming musique", "emoji": "🎵", "sort_order": 6, "is_system": true },
-            { "id": 147, "name": "Streaming vidéo", "emoji": "📺", "sort_order": 7, "is_system": true },
-            { "id": 23, "name": "Téléphonie fixe", "emoji": "☎️", "sort_order": 8, "is_system": true },
-            { "id": 38, "name": "Téléphonie mobile", "emoji": "📱", "sort_order": 9, "is_system": true }
-          ]
-        },
-        {
-          "id": 8,
-          "name": "Scolarité & Enfants",
-          "emoji": "🏫",
-          "sort_order": 8,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 30, "name": "École", "emoji": "🏫", "sort_order": 1, "is_system": true },
-            { "id": 31, "name": "Activités", "emoji": "🎨", "sort_order": 2, "is_system": true },
-            { "id": 32, "name": "Garde", "emoji": "👶", "sort_order": 3, "is_system": true },
-            { "id": 33, "name": "Fournitures", "emoji": "✏️", "sort_order": 4, "is_system": true },
-            { "id": 129, "name": "Jouets", "emoji": "🧸", "sort_order": 5, "is_system": true },
-            { "id": 130, "name": "Logement étudiant", "emoji": "🏠", "sort_order": 6, "is_system": true },
-            { "id": 131, "name": "Pensions", "emoji": "📋", "sort_order": 7, "is_system": true },
-            { "id": 132, "name": "Prêt étudiant", "emoji": "💰", "sort_order": 8, "is_system": true },
-            { "id": 133, "name": "Scolarité & Enfants - Autres", "emoji": "📦", "sort_order": 9, "is_system": true }
-          ]
-        },
-        {
-          "id": 9,
-          "name": "Banque",
-          "emoji": "🏦",
-          "sort_order": 9,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 60, "name": "Banque - Autres", "emoji": "📦", "sort_order": 1, "is_system": true },
-            { "id": 61, "name": "Débit mensuel carte", "emoji": "💳", "sort_order": 2, "is_system": true },
-            { "id": 118, "name": "Chèques", "emoji": "📝", "sort_order": 3, "is_system": true },
-            { "id": 119, "name": "Retraits", "emoji": "💵", "sort_order": 4, "is_system": true },
-            { "id": 120, "name": "Virements", "emoji": "💸", "sort_order": 5, "is_system": true },
-            { "id": 121, "name": "Virements internes", "emoji": "🔄", "sort_order": 6, "is_system": true },
-            { "id": 62, "name": "Épargne", "emoji": "💰", "sort_order": 7, "is_system": true },
-            { "id": 63, "name": "Frais bancaires", "emoji": "💸", "sort_order": 8, "is_system": true },
-            { "id": 64, "name": "Hypothèque", "emoji": "🏠", "sort_order": 9, "is_system": true },
-            { "id": 65, "name": "Incidents de paiement", "emoji": "⚠️", "sort_order": 10, "is_system": true },
-            { "id": 66, "name": "Remboursement emprunt", "emoji": "💸", "sort_order": 11, "is_system": true },
-            { "id": 67, "name": "Services bancaires", "emoji": "🏦", "sort_order": 12, "is_system": true }
-          ]
-        },
-        {
-          "id": 10,
-          "name": "Maison & équipement",
-          "emoji": "🔧",
-          "sort_order": 10,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 134, "name": "Maison & équipement - Autres", "emoji": "📦", "sort_order": 1, "is_system": true },
-            { "id": 135, "name": "Bricolage & outillage", "emoji": "🔧", "sort_order": 2, "is_system": true },
-            { "id": 136, "name": "Décoration", "emoji": "🎨", "sort_order": 3, "is_system": true },
-            { "id": 137, "name": "Extérieur et jardin", "emoji": "🌿", "sort_order": 4, "is_system": true },
-            { "id": 138, "name": "Gros électroménager", "emoji": "🍳", "sort_order": 5, "is_system": true },
-            { "id": 155, "name": "Literie", "emoji": "🛏️", "sort_order": 6, "is_system": true },
-            { "id": 156, "name": "Linge de maison", "emoji": "🧺", "sort_order": 7, "is_system": true },
-            { "id": 139, "name": "Meubles & mobilier", "emoji": "🛋️", "sort_order": 8, "is_system": true },
-            { "id": 140, "name": "Petit électroménager", "emoji": "☕", "sort_order": 9, "is_system": true },
-            { "id": 141, "name": "Rangement & organisation", "emoji": "🗂️", "sort_order": 10, "is_system": true },
-            { "id": 142, "name": "Vaisselle & arts de la table", "emoji": "🍽️", "sort_order": 11, "is_system": true }
-          ]
-        },
-        {
-          "id": 11,
-          "name": "Animaux",
-          "emoji": "🐾",
-          "sort_order": 11,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 125, "name": "Véto", "emoji": "🩺", "sort_order": 1, "is_system": true },
-            { "id": 126, "name": "Nourriture", "emoji": "🥩", "sort_order": 2, "is_system": true },
-            { "id": 127, "name": "Hygiène & litière", "emoji": "🧼", "sort_order": 3, "is_system": true },
-            { "id": 128, "name": "Animaux - Autres", "emoji": "📦", "sort_order": 4, "is_system": true }
-          ]
-        },
-        {
-          "id": 12,
-          "name": "Impôts & taxes",
-          "emoji": "📋",
-          "sort_order": 12,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 93, "name": "Amendes", "emoji": "⚖️", "sort_order": 1, "is_system": true },
-            { "id": 94, "name": "Impôts & taxes - Autres", "emoji": "📦", "sort_order": 2, "is_system": true },
-            { "id": 95, "name": "Impôts fonciers", "emoji": "🏠", "sort_order": 3, "is_system": true },
-            { "id": 96, "name": "Impôts sur le revenu", "emoji": "💰", "sort_order": 4, "is_system": true },
-            { "id": 97, "name": "Taxes", "emoji": "📋", "sort_order": 5, "is_system": true },
-            { "id": 98, "name": "TVA", "emoji": "📋", "sort_order": 6, "is_system": true }
-          ]
-        },
-        {
-          "id": 14,
-          "name": "Divers",
-          "emoji": "❓",
-          "sort_order": 14,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 87, "name": "A catégoriser", "emoji": "❓", "sort_order": 1, "is_system": true },
-            { "id": 88, "name": "Assurance", "emoji": "🛡️", "sort_order": 2, "is_system": true },
-            { "id": 89, "name": "Autres dépenses", "emoji": "📦", "sort_order": 3, "is_system": true },
-            { "id": 90, "name": "Dons", "emoji": "🎁", "sort_order": 4, "is_system": true },
-            { "id": 91, "name": "Pressing", "emoji": "👔", "sort_order": 5, "is_system": true },
-            { "id": 92, "name": "Tabac", "emoji": "🚬", "sort_order": 6, "is_system": true }
-          ]
-        },
-        {
-          "id": 15,
-          "name": "Achat et Shopping",
-          "emoji": "🛍️",
-          "sort_order": 15,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 41, "name": "Achat et Shopping - Autres", "emoji": "📦", "sort_order": 1, "is_system": true },
-            { "id": 42, "name": "Articles de sport", "emoji": "🏋️", "sort_order": 2, "is_system": true },
-            { "id": 43, "name": "Cadeaux", "emoji": "🎁", "sort_order": 3, "is_system": true },
-            { "id": 44, "name": "Films & DVDs", "emoji": "🎬", "sort_order": 4, "is_system": true },
-            { "id": 45, "name": "High-tech", "emoji": "💻", "sort_order": 5, "is_system": true },
-            { "id": 46, "name": "Licences", "emoji": "📄", "sort_order": 6, "is_system": true },
-            { "id": 47, "name": "Livres", "emoji": "📚", "sort_order": 7, "is_system": true },
-            { "id": 48, "name": "Musiques", "emoji": "🎵", "sort_order": 8, "is_system": true },
-            { "id": 49, "name": "Vêtements / Chaussures", "emoji": "👗", "sort_order": 9, "is_system": true }
-          ]
-        },
-        {
-          "id": 16,
-          "name": "Dépenses pro",
-          "emoji": "💼",
-          "sort_order": 16,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 68, "name": "Comptabilité", "emoji": "📒", "sort_order": 1, "is_system": true },
-            { "id": 69, "name": "Conseils", "emoji": "💬", "sort_order": 2, "is_system": true },
-            { "id": 70, "name": "Cotisations sociales", "emoji": "🏛️", "sort_order": 3, "is_system": true },
-            { "id": 71, "name": "Dépenses pro - Autres", "emoji": "📦", "sort_order": 4, "is_system": true },
-            { "id": 72, "name": "Fournitures de bureau", "emoji": "🖊️", "sort_order": 5, "is_system": true },
-            { "id": 73, "name": "Frais d'expéditions", "emoji": "📦", "sort_order": 6, "is_system": true },
-            { "id": 74, "name": "Frais d'impressions", "emoji": "🖨️", "sort_order": 7, "is_system": true },
-            { "id": 75, "name": "Frais de recrutement", "emoji": "👥", "sort_order": 8, "is_system": true },
-            { "id": 76, "name": "Frais juridiques", "emoji": "⚖️", "sort_order": 9, "is_system": true },
-            { "id": 77, "name": "Maintenance des bureaux", "emoji": "🔧", "sort_order": 10, "is_system": true },
-            { "id": 78, "name": "Marketing", "emoji": "📣", "sort_order": 11, "is_system": true },
-            { "id": 79, "name": "Notes de frais", "emoji": "🧾", "sort_order": 12, "is_system": true },
-            { "id": 80, "name": "Prévoyance", "emoji": "🛡️", "sort_order": 13, "is_system": true },
-            { "id": 81, "name": "Publicité", "emoji": "📢", "sort_order": 14, "is_system": true },
-            { "id": 82, "name": "Rémunérations dirigeants", "emoji": "👔", "sort_order": 15, "is_system": true },
-            { "id": 83, "name": "Salaires", "emoji": "💼", "sort_order": 16, "is_system": true },
-            { "id": 84, "name": "Services en ligne", "emoji": "🌐", "sort_order": 17, "is_system": true },
-            { "id": 85, "name": "Sous-traitance", "emoji": "🤝", "sort_order": 18, "is_system": true },
-            { "id": 86, "name": "Taxe d'apprentissage", "emoji": "🎓", "sort_order": 19, "is_system": true }
-          ]
-        },
-        {
-          "id": 17,
-          "name": "Esthétique & Soins",
-          "emoji": "💇",
-          "sort_order": 17,
-          "is_system": true,
-          "is_active": true,
-          "subcategories": [
-            { "id": 113, "name": "Coiffeur", "emoji": "💇", "sort_order": 1, "is_system": true },
-            { "id": 114, "name": "Cosmétique", "emoji": "💄", "sort_order": 2, "is_system": true },
-            { "id": 115, "name": "Esthétique", "emoji": "💅", "sort_order": 3, "is_system": true },
-            { "id": 116, "name": "Esthétique & Soins - Autres", "emoji": "📦", "sort_order": 4, "is_system": true },
-            { "id": 117, "name": "Spa & Massage", "emoji": "💆", "sort_order": 5, "is_system": true }
-          ]
-        }
-      ]
+        "categories": [
+            {
+                "id": 1,
+                "name": "Logement",
+                "emoji": "🏠",
+                "sort_order": 1,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 1,
+                        "name": "Loyer",
+                        "emoji": "🏘️",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Rent"
+                    },
+                    {
+                        "id": 2,
+                        "name": "Charges copro",
+                        "emoji": "🏢",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Condo Fees"
+                    },
+                    {
+                        "id": 5,
+                        "name": "Entretien",
+                        "emoji": "🔧",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Maintenance"
+                    },
+                    {
+                        "id": 99,
+                        "name": "Assurance habitation",
+                        "emoji": "🛡️",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Home Insurance"
+                    },
+                    {
+                        "id": 100,
+                        "name": "Charges diverses",
+                        "emoji": "📋",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Miscellaneous Charges"
+                    },
+                    {
+                        "id": 101,
+                        "name": "Chauffage",
+                        "emoji": "🔥",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Heating"
+                    },
+                    {
+                        "id": 103,
+                        "name": "Eau",
+                        "emoji": "💧",
+                        "sort_order": 7,
+                        "is_system": true,
+                        "name_en": "Water"
+                    },
+                    {
+                        "id": 104,
+                        "name": "Électricité",
+                        "emoji": "⚡",
+                        "sort_order": 8,
+                        "is_system": true,
+                        "name_en": "Electricity"
+                    },
+                    {
+                        "id": 106,
+                        "name": "Gaz",
+                        "emoji": "🔥",
+                        "sort_order": 9,
+                        "is_system": true,
+                        "name_en": "Gas"
+                    },
+                    {
+                        "id": 107,
+                        "name": "Logement - Autres",
+                        "emoji": "📦",
+                        "sort_order": 10,
+                        "is_system": true,
+                        "name_en": "Housing - Other"
+                    }
+                ],
+                "name_en": "Housing"
+            },
+            {
+                "id": 2,
+                "name": "Alimentation & Restauration",
+                "emoji": "🛒",
+                "sort_order": 2,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 39,
+                        "name": "Alimentation - Autres",
+                        "emoji": "📦",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Food - Other"
+                    },
+                    {
+                        "id": 151,
+                        "name": "Boulangerie",
+                        "emoji": "🥐",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Bakery"
+                    },
+                    {
+                        "id": 40,
+                        "name": "Café",
+                        "emoji": "☕",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Coffee"
+                    },
+                    {
+                        "id": 152,
+                        "name": "Cantine",
+                        "emoji": "🏫",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Canteen"
+                    },
+                    {
+                        "id": 153,
+                        "name": "Livraison",
+                        "emoji": "🛵",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Delivery"
+                    },
+                    {
+                        "id": 7,
+                        "name": "Restaurants",
+                        "emoji": "🍽️",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Restaurants"
+                    },
+                    {
+                        "id": 58,
+                        "name": "Restauration rapide",
+                        "emoji": "🍔",
+                        "sort_order": 7,
+                        "is_system": true,
+                        "name_en": "Fast Food"
+                    },
+                    {
+                        "id": 6,
+                        "name": "Supermarché / Epicerie",
+                        "emoji": "🛒",
+                        "sort_order": 8,
+                        "is_system": true,
+                        "name_en": "Supermarket / Grocery"
+                    }
+                ],
+                "name_en": "Food & Dining"
+            },
+            {
+                "id": 3,
+                "name": "Auto & Transports",
+                "emoji": "🚗",
+                "sort_order": 3,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 50,
+                        "name": "Assurance véhicule",
+                        "emoji": "🛡️",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Vehicle Insurance"
+                    },
+                    {
+                        "id": 51,
+                        "name": "Auto & Transports - Autres",
+                        "emoji": "📦",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Auto & Transport - Other"
+                    },
+                    {
+                        "id": 12,
+                        "name": "Billets d'avion",
+                        "emoji": "✈️",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Plane Tickets"
+                    },
+                    {
+                        "id": 52,
+                        "name": "Billets de train",
+                        "emoji": "🚆",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Train Tickets"
+                    },
+                    {
+                        "id": 59,
+                        "name": "Transports en commun",
+                        "emoji": "🚌",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Public Transport"
+                    },
+                    {
+                        "id": 154,
+                        "name": "Taxi / VTC",
+                        "emoji": "🚕",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Taxi / Rideshare"
+                    },
+                    {
+                        "id": 53,
+                        "name": "Carburant",
+                        "emoji": "⛽",
+                        "sort_order": 7,
+                        "is_system": true,
+                        "name_en": "Fuel"
+                    },
+                    {
+                        "id": 54,
+                        "name": "Entretien véhicule",
+                        "emoji": "🔧",
+                        "sort_order": 8,
+                        "is_system": true,
+                        "name_en": "Vehicle Maintenance"
+                    },
+                    {
+                        "id": 55,
+                        "name": "Location de véhicule",
+                        "emoji": "🚙",
+                        "sort_order": 9,
+                        "is_system": true,
+                        "name_en": "Vehicle Rental"
+                    },
+                    {
+                        "id": 56,
+                        "name": "Péages",
+                        "emoji": "🛣️",
+                        "sort_order": 10,
+                        "is_system": true,
+                        "name_en": "Tolls"
+                    },
+                    {
+                        "id": 57,
+                        "name": "Stationnement",
+                        "emoji": "🅿️",
+                        "sort_order": 11,
+                        "is_system": true,
+                        "name_en": "Parking"
+                    }
+                ],
+                "name_en": "Auto & Transport"
+            },
+            {
+                "id": 4,
+                "name": "Santé",
+                "emoji": "💊",
+                "sort_order": 4,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 14,
+                        "name": "Dentiste",
+                        "emoji": "🦷",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Dentist"
+                    },
+                    {
+                        "id": 122,
+                        "name": "Médecin",
+                        "emoji": "👨‍⚕️",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Doctor"
+                    },
+                    {
+                        "id": 148,
+                        "name": "Analyses / examens",
+                        "emoji": "🔬",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Tests / Exams"
+                    },
+                    {
+                        "id": 149,
+                        "name": "Kiné / ostéo",
+                        "emoji": "🙆",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Physio / Osteo"
+                    },
+                    {
+                        "id": 150,
+                        "name": "Lunettes / lentilles",
+                        "emoji": "👓",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Glasses / Lenses"
+                    },
+                    {
+                        "id": 123,
+                        "name": "Opticien / Ophtalmo",
+                        "emoji": "👁️",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Optician / Ophthalmologist"
+                    },
+                    {
+                        "id": 15,
+                        "name": "Pharmacie",
+                        "emoji": "💊",
+                        "sort_order": 7,
+                        "is_system": true,
+                        "name_en": "Pharmacy"
+                    },
+                    {
+                        "id": 16,
+                        "name": "Mutuelle",
+                        "emoji": "🛡️",
+                        "sort_order": 8,
+                        "is_system": true,
+                        "name_en": "Health Insurance"
+                    },
+                    {
+                        "id": 124,
+                        "name": "Santé - Autres",
+                        "emoji": "📦",
+                        "sort_order": 9,
+                        "is_system": true,
+                        "name_en": "Health - Other"
+                    }
+                ],
+                "name_en": "Health"
+            },
+            {
+                "id": 5,
+                "name": "Loisirs & sorties",
+                "emoji": "🎬",
+                "sort_order": 5,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 18,
+                        "name": "Bars / Clubs",
+                        "emoji": "🍸",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Bars / Clubs"
+                    },
+                    {
+                        "id": 19,
+                        "name": "Culture & cinéma",
+                        "emoji": "🎬",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Culture & Cinema"
+                    },
+                    {
+                        "id": 20,
+                        "name": "Voyages / Vacances",
+                        "emoji": "✈️",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Travel / Holidays"
+                    },
+                    {
+                        "id": 21,
+                        "name": "Sport",
+                        "emoji": "🏋️",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Sport"
+                    },
+                    {
+                        "id": 108,
+                        "name": "Sports d'hiver",
+                        "emoji": "⛷️",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Winter Sports"
+                    },
+                    {
+                        "id": 109,
+                        "name": "Loisirs & sorties - Autres",
+                        "emoji": "📦",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Leisure & Outings - Other"
+                    },
+                    {
+                        "id": 110,
+                        "name": "Hôtels",
+                        "emoji": "🏨",
+                        "sort_order": 7,
+                        "is_system": true,
+                        "name_en": "Hotels"
+                    },
+                    {
+                        "id": 111,
+                        "name": "Hobbies",
+                        "emoji": "🎨",
+                        "sort_order": 8,
+                        "is_system": true,
+                        "name_en": "Hobbies"
+                    },
+                    {
+                        "id": 112,
+                        "name": "Divertissements",
+                        "emoji": "🎮",
+                        "sort_order": 9,
+                        "is_system": true,
+                        "name_en": "Entertainment"
+                    }
+                ],
+                "name_en": "Leisure & Outings"
+            },
+            {
+                "id": 6,
+                "name": "Abonnements",
+                "emoji": "📱",
+                "sort_order": 6,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 36,
+                        "name": "Abonnements - Autres",
+                        "emoji": "📦",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Subscriptions - Other"
+                    },
+                    {
+                        "id": 37,
+                        "name": "Câble / Satellite",
+                        "emoji": "📡",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Cable / Satellite"
+                    },
+                    {
+                        "id": 143,
+                        "name": "Internet",
+                        "emoji": "🌐",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Internet"
+                    },
+                    {
+                        "id": 144,
+                        "name": "Logiciels / SaaS",
+                        "emoji": "💻",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Software / SaaS"
+                    },
+                    {
+                        "id": 145,
+                        "name": "Presse / magazines",
+                        "emoji": "📰",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Press / Magazines"
+                    },
+                    {
+                        "id": 146,
+                        "name": "Streaming musique",
+                        "emoji": "🎵",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Music Streaming"
+                    },
+                    {
+                        "id": 147,
+                        "name": "Streaming vidéo",
+                        "emoji": "📺",
+                        "sort_order": 7,
+                        "is_system": true,
+                        "name_en": "Video Streaming"
+                    },
+                    {
+                        "id": 23,
+                        "name": "Téléphonie fixe",
+                        "emoji": "☎️",
+                        "sort_order": 8,
+                        "is_system": true,
+                        "name_en": "Landline Phone"
+                    },
+                    {
+                        "id": 38,
+                        "name": "Téléphonie mobile",
+                        "emoji": "📱",
+                        "sort_order": 9,
+                        "is_system": true,
+                        "name_en": "Mobile Phone"
+                    }
+                ],
+                "name_en": "Subscriptions"
+            },
+            {
+                "id": 8,
+                "name": "Scolarité & Enfants",
+                "emoji": "🏫",
+                "sort_order": 8,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 30,
+                        "name": "École",
+                        "emoji": "🏫",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "School"
+                    },
+                    {
+                        "id": 31,
+                        "name": "Activités",
+                        "emoji": "🎨",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Activities"
+                    },
+                    {
+                        "id": 32,
+                        "name": "Garde",
+                        "emoji": "👶",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Childcare"
+                    },
+                    {
+                        "id": 33,
+                        "name": "Fournitures",
+                        "emoji": "✏️",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Supplies"
+                    },
+                    {
+                        "id": 129,
+                        "name": "Jouets",
+                        "emoji": "🧸",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Toys"
+                    },
+                    {
+                        "id": 130,
+                        "name": "Logement étudiant",
+                        "emoji": "🏠",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Student Housing"
+                    },
+                    {
+                        "id": 131,
+                        "name": "Pensions",
+                        "emoji": "📋",
+                        "sort_order": 7,
+                        "is_system": true,
+                        "name_en": "Pensions"
+                    },
+                    {
+                        "id": 132,
+                        "name": "Prêt étudiant",
+                        "emoji": "💰",
+                        "sort_order": 8,
+                        "is_system": true,
+                        "name_en": "Student Loan"
+                    },
+                    {
+                        "id": 133,
+                        "name": "Scolarité & Enfants - Autres",
+                        "emoji": "📦",
+                        "sort_order": 9,
+                        "is_system": true,
+                        "name_en": "Schooling & Children - Other"
+                    }
+                ],
+                "name_en": "Schooling & Children"
+            },
+            {
+                "id": 9,
+                "name": "Banque",
+                "emoji": "🏦",
+                "sort_order": 9,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 60,
+                        "name": "Banque - Autres",
+                        "emoji": "📦",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Banking - Other"
+                    },
+                    {
+                        "id": 61,
+                        "name": "Débit mensuel carte",
+                        "emoji": "💳",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Monthly Card Debit"
+                    },
+                    {
+                        "id": 118,
+                        "name": "Chèques",
+                        "emoji": "📝",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Cheques"
+                    },
+                    {
+                        "id": 119,
+                        "name": "Retraits",
+                        "emoji": "💵",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Withdrawals"
+                    },
+                    {
+                        "id": 120,
+                        "name": "Virements",
+                        "emoji": "💸",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Transfers"
+                    },
+                    {
+                        "id": 121,
+                        "name": "Virements internes",
+                        "emoji": "🔄",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Internal Transfers"
+                    },
+                    {
+                        "id": 62,
+                        "name": "Épargne",
+                        "emoji": "💰",
+                        "sort_order": 7,
+                        "is_system": true,
+                        "name_en": "Savings"
+                    },
+                    {
+                        "id": 63,
+                        "name": "Frais bancaires",
+                        "emoji": "💸",
+                        "sort_order": 8,
+                        "is_system": true,
+                        "name_en": "Bank Fees"
+                    },
+                    {
+                        "id": 64,
+                        "name": "Hypothèque",
+                        "emoji": "🏠",
+                        "sort_order": 9,
+                        "is_system": true,
+                        "name_en": "Mortgage"
+                    },
+                    {
+                        "id": 65,
+                        "name": "Incidents de paiement",
+                        "emoji": "⚠️",
+                        "sort_order": 10,
+                        "is_system": true,
+                        "name_en": "Payment Incidents"
+                    },
+                    {
+                        "id": 66,
+                        "name": "Remboursement emprunt",
+                        "emoji": "💸",
+                        "sort_order": 11,
+                        "is_system": true,
+                        "name_en": "Loan Repayment"
+                    },
+                    {
+                        "id": 67,
+                        "name": "Services bancaires",
+                        "emoji": "🏦",
+                        "sort_order": 12,
+                        "is_system": true,
+                        "name_en": "Banking Services"
+                    }
+                ],
+                "name_en": "Banking"
+            },
+            {
+                "id": 10,
+                "name": "Maison & équipement",
+                "emoji": "🔧",
+                "sort_order": 10,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 134,
+                        "name": "Maison & équipement - Autres",
+                        "emoji": "📦",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Home & Equipment - Other"
+                    },
+                    {
+                        "id": 135,
+                        "name": "Bricolage & outillage",
+                        "emoji": "🔧",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "DIY & Tools"
+                    },
+                    {
+                        "id": 136,
+                        "name": "Décoration",
+                        "emoji": "🎨",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Decoration"
+                    },
+                    {
+                        "id": 137,
+                        "name": "Extérieur et jardin",
+                        "emoji": "🌿",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Outdoor & Garden"
+                    },
+                    {
+                        "id": 138,
+                        "name": "Gros électroménager",
+                        "emoji": "🍳",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Large Appliances"
+                    },
+                    {
+                        "id": 155,
+                        "name": "Literie",
+                        "emoji": "🛏️",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Bedding"
+                    },
+                    {
+                        "id": 156,
+                        "name": "Linge de maison",
+                        "emoji": "🧺",
+                        "sort_order": 7,
+                        "is_system": true,
+                        "name_en": "Household Linen"
+                    },
+                    {
+                        "id": 139,
+                        "name": "Meubles & mobilier",
+                        "emoji": "🛋️",
+                        "sort_order": 8,
+                        "is_system": true,
+                        "name_en": "Furniture"
+                    },
+                    {
+                        "id": 140,
+                        "name": "Petit électroménager",
+                        "emoji": "☕",
+                        "sort_order": 9,
+                        "is_system": true,
+                        "name_en": "Small Appliances"
+                    },
+                    {
+                        "id": 141,
+                        "name": "Rangement & organisation",
+                        "emoji": "🗂️",
+                        "sort_order": 10,
+                        "is_system": true,
+                        "name_en": "Storage & Organization"
+                    },
+                    {
+                        "id": 142,
+                        "name": "Vaisselle & arts de la table",
+                        "emoji": "🍽️",
+                        "sort_order": 11,
+                        "is_system": true,
+                        "name_en": "Tableware"
+                    }
+                ],
+                "name_en": "Home & Equipment"
+            },
+            {
+                "id": 11,
+                "name": "Animaux",
+                "emoji": "🐾",
+                "sort_order": 11,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 125,
+                        "name": "Véto",
+                        "emoji": "🩺",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Vet"
+                    },
+                    {
+                        "id": 126,
+                        "name": "Nourriture",
+                        "emoji": "🥩",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Food"
+                    },
+                    {
+                        "id": 127,
+                        "name": "Hygiène & litière",
+                        "emoji": "🧼",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Hygiene & Litter"
+                    },
+                    {
+                        "id": 128,
+                        "name": "Animaux - Autres",
+                        "emoji": "📦",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Pets - Other"
+                    }
+                ],
+                "name_en": "Pets"
+            },
+            {
+                "id": 12,
+                "name": "Impôts & taxes",
+                "emoji": "📋",
+                "sort_order": 12,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 93,
+                        "name": "Amendes",
+                        "emoji": "⚖️",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Fines"
+                    },
+                    {
+                        "id": 94,
+                        "name": "Impôts & taxes - Autres",
+                        "emoji": "📦",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Taxes - Other"
+                    },
+                    {
+                        "id": 95,
+                        "name": "Impôts fonciers",
+                        "emoji": "🏠",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Property Tax"
+                    },
+                    {
+                        "id": 96,
+                        "name": "Impôts sur le revenu",
+                        "emoji": "💰",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Income Tax"
+                    },
+                    {
+                        "id": 97,
+                        "name": "Taxes",
+                        "emoji": "📋",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Taxes"
+                    },
+                    {
+                        "id": 98,
+                        "name": "TVA",
+                        "emoji": "📋",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "VAT"
+                    }
+                ],
+                "name_en": "Taxes"
+            },
+            {
+                "id": 14,
+                "name": "Divers",
+                "emoji": "❓",
+                "sort_order": 14,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 87,
+                        "name": "A catégoriser",
+                        "emoji": "❓",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "To categorize"
+                    },
+                    {
+                        "id": 88,
+                        "name": "Assurance",
+                        "emoji": "🛡️",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Insurance"
+                    },
+                    {
+                        "id": 89,
+                        "name": "Autres dépenses",
+                        "emoji": "📦",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Other Expenses"
+                    },
+                    {
+                        "id": 90,
+                        "name": "Dons",
+                        "emoji": "🎁",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Donations"
+                    },
+                    {
+                        "id": 91,
+                        "name": "Pressing",
+                        "emoji": "👔",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Dry Cleaning"
+                    },
+                    {
+                        "id": 92,
+                        "name": "Tabac",
+                        "emoji": "🚬",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Tobacco"
+                    }
+                ],
+                "name_en": "Miscellaneous"
+            },
+            {
+                "id": 15,
+                "name": "Achat et Shopping",
+                "emoji": "🛍️",
+                "sort_order": 15,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 41,
+                        "name": "Achat et Shopping - Autres",
+                        "emoji": "📦",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Shopping - Other"
+                    },
+                    {
+                        "id": 42,
+                        "name": "Articles de sport",
+                        "emoji": "🏋️",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Sporting Goods"
+                    },
+                    {
+                        "id": 43,
+                        "name": "Cadeaux",
+                        "emoji": "🎁",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Gifts"
+                    },
+                    {
+                        "id": 44,
+                        "name": "Films & DVDs",
+                        "emoji": "🎬",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Movies & DVDs"
+                    },
+                    {
+                        "id": 45,
+                        "name": "High-tech",
+                        "emoji": "💻",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "High-tech"
+                    },
+                    {
+                        "id": 46,
+                        "name": "Licences",
+                        "emoji": "📄",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Licenses"
+                    },
+                    {
+                        "id": 47,
+                        "name": "Livres",
+                        "emoji": "📚",
+                        "sort_order": 7,
+                        "is_system": true,
+                        "name_en": "Books"
+                    },
+                    {
+                        "id": 48,
+                        "name": "Musiques",
+                        "emoji": "🎵",
+                        "sort_order": 8,
+                        "is_system": true,
+                        "name_en": "Music"
+                    },
+                    {
+                        "id": 49,
+                        "name": "Vêtements / Chaussures",
+                        "emoji": "👗",
+                        "sort_order": 9,
+                        "is_system": true,
+                        "name_en": "Clothing / Shoes"
+                    }
+                ],
+                "name_en": "Shopping"
+            },
+            {
+                "id": 16,
+                "name": "Dépenses pro",
+                "emoji": "💼",
+                "sort_order": 16,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 68,
+                        "name": "Comptabilité",
+                        "emoji": "📒",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Accounting"
+                    },
+                    {
+                        "id": 69,
+                        "name": "Conseils",
+                        "emoji": "💬",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Consulting"
+                    },
+                    {
+                        "id": 70,
+                        "name": "Cotisations sociales",
+                        "emoji": "🏛️",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Social Contributions"
+                    },
+                    {
+                        "id": 71,
+                        "name": "Dépenses pro - Autres",
+                        "emoji": "📦",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Business Expenses - Other"
+                    },
+                    {
+                        "id": 72,
+                        "name": "Fournitures de bureau",
+                        "emoji": "🖊️",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Office Supplies"
+                    },
+                    {
+                        "id": 73,
+                        "name": "Frais d'expéditions",
+                        "emoji": "📦",
+                        "sort_order": 6,
+                        "is_system": true,
+                        "name_en": "Shipping Fees"
+                    },
+                    {
+                        "id": 74,
+                        "name": "Frais d'impressions",
+                        "emoji": "🖨️",
+                        "sort_order": 7,
+                        "is_system": true,
+                        "name_en": "Printing Fees"
+                    },
+                    {
+                        "id": 75,
+                        "name": "Frais de recrutement",
+                        "emoji": "👥",
+                        "sort_order": 8,
+                        "is_system": true,
+                        "name_en": "Recruitment Fees"
+                    },
+                    {
+                        "id": 76,
+                        "name": "Frais juridiques",
+                        "emoji": "⚖️",
+                        "sort_order": 9,
+                        "is_system": true,
+                        "name_en": "Legal Fees"
+                    },
+                    {
+                        "id": 77,
+                        "name": "Maintenance des bureaux",
+                        "emoji": "🔧",
+                        "sort_order": 10,
+                        "is_system": true,
+                        "name_en": "Office Maintenance"
+                    },
+                    {
+                        "id": 78,
+                        "name": "Marketing",
+                        "emoji": "📣",
+                        "sort_order": 11,
+                        "is_system": true,
+                        "name_en": "Marketing"
+                    },
+                    {
+                        "id": 79,
+                        "name": "Notes de frais",
+                        "emoji": "🧾",
+                        "sort_order": 12,
+                        "is_system": true,
+                        "name_en": "Expense Reports"
+                    },
+                    {
+                        "id": 80,
+                        "name": "Prévoyance",
+                        "emoji": "🛡️",
+                        "sort_order": 13,
+                        "is_system": true,
+                        "name_en": "Personal Insurance"
+                    },
+                    {
+                        "id": 81,
+                        "name": "Publicité",
+                        "emoji": "📢",
+                        "sort_order": 14,
+                        "is_system": true,
+                        "name_en": "Advertising"
+                    },
+                    {
+                        "id": 82,
+                        "name": "Rémunérations dirigeants",
+                        "emoji": "👔",
+                        "sort_order": 15,
+                        "is_system": true,
+                        "name_en": "Executive Compensation"
+                    },
+                    {
+                        "id": 83,
+                        "name": "Salaires",
+                        "emoji": "💼",
+                        "sort_order": 16,
+                        "is_system": true,
+                        "name_en": "Salaries"
+                    },
+                    {
+                        "id": 84,
+                        "name": "Services en ligne",
+                        "emoji": "🌐",
+                        "sort_order": 17,
+                        "is_system": true,
+                        "name_en": "Online Services"
+                    },
+                    {
+                        "id": 85,
+                        "name": "Sous-traitance",
+                        "emoji": "🤝",
+                        "sort_order": 18,
+                        "is_system": true,
+                        "name_en": "Subcontracting"
+                    },
+                    {
+                        "id": 86,
+                        "name": "Taxe d'apprentissage",
+                        "emoji": "🎓",
+                        "sort_order": 19,
+                        "is_system": true,
+                        "name_en": "Apprenticeship Tax"
+                    }
+                ],
+                "name_en": "Business Expenses"
+            },
+            {
+                "id": 17,
+                "name": "Esthétique & Soins",
+                "emoji": "💇",
+                "sort_order": 17,
+                "is_system": true,
+                "is_active": true,
+                "subcategories": [
+                    {
+                        "id": 113,
+                        "name": "Coiffeur",
+                        "emoji": "💇",
+                        "sort_order": 1,
+                        "is_system": true,
+                        "name_en": "Hairdresser"
+                    },
+                    {
+                        "id": 114,
+                        "name": "Cosmétique",
+                        "emoji": "💄",
+                        "sort_order": 2,
+                        "is_system": true,
+                        "name_en": "Cosmetics"
+                    },
+                    {
+                        "id": 115,
+                        "name": "Esthétique",
+                        "emoji": "💅",
+                        "sort_order": 3,
+                        "is_system": true,
+                        "name_en": "Beauty"
+                    },
+                    {
+                        "id": 116,
+                        "name": "Esthétique & Soins - Autres",
+                        "emoji": "📦",
+                        "sort_order": 4,
+                        "is_system": true,
+                        "name_en": "Beauty & Care - Other"
+                    },
+                    {
+                        "id": 117,
+                        "name": "Spa & Massage",
+                        "emoji": "💆",
+                        "sort_order": 5,
+                        "is_system": true,
+                        "name_en": "Spa & Massage"
+                    }
+                ],
+                "name_en": "Beauty & Care"
+            }
+        ]
     },
     "incomes": {
-      "categories": [
-        { "id": 1, "name": "Salaires", "emoji": "💼", "sort_order": 1, "is_system": true },
-        { "id": 2, "name": "Loyers perçus", "emoji": "🏘️", "sort_order": 2, "is_system": true },
-        { "id": 3, "name": "Primes & bonus", "emoji": "🎯", "sort_order": 3, "is_system": true },
-        { "id": 4, "name": "Allocations & aides", "emoji": "🏛️", "sort_order": 4, "is_system": true },
-        { "id": 5, "name": "Autres entrées", "emoji": "💸", "sort_order": 5, "is_system": true },
-        { "id": 6, "name": "Dépôt d'argent", "emoji": "💵", "sort_order": 6, "is_system": true },
-        { "id": 7, "name": "Emprunt", "emoji": "🏦", "sort_order": 7, "is_system": true },
-        { "id": 8, "name": "Extra", "emoji": "✨", "sort_order": 8, "is_system": true },
-        { "id": 9, "name": "Intérêts", "emoji": "📈", "sort_order": 9, "is_system": true },
-        { "id": 10, "name": "Remboursements", "emoji": "↩️", "sort_order": 10, "is_system": true },
-        { "id": 11, "name": "Retraite", "emoji": "👵", "sort_order": 11, "is_system": true },
-        { "id": 12, "name": "Services", "emoji": "🛠️", "sort_order": 12, "is_system": true },
-        { "id": 13, "name": "Subventions", "emoji": "🤝", "sort_order": 13, "is_system": true }
-      ]
+        "categories": [
+            {
+                "id": 1,
+                "name": "Salaires",
+                "emoji": "💼",
+                "sort_order": 1,
+                "is_system": true,
+                "name_en": "Salaries"
+            },
+            {
+                "id": 2,
+                "name": "Loyers perçus",
+                "emoji": "🏘️",
+                "sort_order": 2,
+                "is_system": true,
+                "name_en": "Rental Income"
+            },
+            {
+                "id": 3,
+                "name": "Primes & bonus",
+                "emoji": "🎯",
+                "sort_order": 3,
+                "is_system": true,
+                "name_en": "Bonuses"
+            },
+            {
+                "id": 4,
+                "name": "Allocations & aides",
+                "emoji": "🏛️",
+                "sort_order": 4,
+                "is_system": true,
+                "name_en": "Allowances & Benefits"
+            },
+            {
+                "id": 5,
+                "name": "Autres entrées",
+                "emoji": "💸",
+                "sort_order": 5,
+                "is_system": true,
+                "name_en": "Other Inflows"
+            },
+            {
+                "id": 6,
+                "name": "Dépôt d'argent",
+                "emoji": "💵",
+                "sort_order": 6,
+                "is_system": true,
+                "name_en": "Cash Deposit"
+            },
+            {
+                "id": 7,
+                "name": "Emprunt",
+                "emoji": "🏦",
+                "sort_order": 7,
+                "is_system": true,
+                "name_en": "Loan"
+            },
+            {
+                "id": 8,
+                "name": "Extra",
+                "emoji": "✨",
+                "sort_order": 8,
+                "is_system": true,
+                "name_en": "Extra"
+            },
+            {
+                "id": 9,
+                "name": "Intérêts",
+                "emoji": "📈",
+                "sort_order": 9,
+                "is_system": true,
+                "name_en": "Interest"
+            },
+            {
+                "id": 10,
+                "name": "Remboursements",
+                "emoji": "↩️",
+                "sort_order": 10,
+                "is_system": true,
+                "name_en": "Reimbursements"
+            },
+            {
+                "id": 11,
+                "name": "Retraite",
+                "emoji": "👵",
+                "sort_order": 11,
+                "is_system": true,
+                "name_en": "Retirement"
+            },
+            {
+                "id": 12,
+                "name": "Services",
+                "emoji": "🛠️",
+                "sort_order": 12,
+                "is_system": true,
+                "name_en": "Services"
+            },
+            {
+                "id": 13,
+                "name": "Subventions",
+                "emoji": "🤝",
+                "sort_order": 13,
+                "is_system": true,
+                "name_en": "Subsidies"
+            }
+        ]
     }
-  }
-  
+}

@@ -460,7 +460,7 @@ private struct ExpenseRow: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.budgetText)
                     .lineLimit(1)
-                Text("\(AppDateFormatter.dayMonth(expense.spentAt)) · \(expense.category?.name ?? "Sans catégorie")")
+                Text("\(AppDateFormatter.dayMonth(expense.spentAt)) · \(expense.category?.displayName ?? NSLocalizedString("Sans catégorie", comment: ""))")
                     .font(.caption)
                     .foregroundStyle(Color.budgetTextMute)
             }

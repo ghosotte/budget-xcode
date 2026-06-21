@@ -23,9 +23,16 @@ struct budgetApp: App {
         }
     }()
 
+    @State private var language = LanguageStore()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(language)
+                // Re-render live au changement de langue SANS changer l'identité de la vue
+                // (sinon `.task` de cold-start re-tournerait → rafales de sync / rate limit).
+                // Le `Bundle` swizzlé résout déjà les chaînes dans la langue du foyer actif.
+                .environment(\.locale, Locale(identifier: language.code))
         }
         .modelContainer(sharedContainer)
     }

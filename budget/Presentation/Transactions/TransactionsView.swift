@@ -6,9 +6,9 @@ enum TransactionFilter: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .all:      return "Tout"
-        case .expenses: return "Dépenses"
-        case .incomes:  return "Revenus"
+        case .all:      return NSLocalizedString("Tout", comment: "")
+        case .expenses: return NSLocalizedString("Dépenses", comment: "")
+        case .incomes:  return NSLocalizedString("Revenus", comment: "")
         }
     }
 }
@@ -131,7 +131,7 @@ struct TransactionsView: View {
                 Button("Toutes les catégories") { categoryFilter = nil }
                 Divider()
                 ForEach(categories) { cat in
-                    Button("\(cat.emoji) \(cat.name)") { categoryFilter = cat }
+                    Button("\(cat.emoji) \(cat.displayName)") { categoryFilter = cat }
                 }
             } label: {
                 Image(systemName: "line.3.horizontal.decrease")

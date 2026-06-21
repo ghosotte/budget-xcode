@@ -27,8 +27,8 @@ struct CategoryPickerView: View {
         let q = search.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return active }
         return active.filter { cat in
-            cat.name.localizedCaseInsensitiveContains(q)
-                || cat.subcategories.contains { $0.name.localizedCaseInsensitiveContains(q) }
+            cat.displayName.localizedCaseInsensitiveContains(q)
+                || cat.subcategories.contains { $0.displayName.localizedCaseInsensitiveContains(q) }
         }
     }
 
@@ -36,13 +36,13 @@ struct CategoryPickerView: View {
         NavigationStack(path: $path) {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 20) {
-                    CategoryCell(emoji: "🚫", name: "Aucune", selected: category == nil) {
+                    CategoryCell(emoji: "🚫", name: NSLocalizedString("Aucune", comment: ""), selected: category == nil) {
                         category = nil
                         subcategory = nil
                         dismiss()
                     }
                     ForEach(filtered) { cat in
-                        CategoryCell(emoji: cat.emoji, name: cat.name, selected: cat == category) {
+                        CategoryCell(emoji: cat.emoji, name: cat.displayName, selected: cat == category) {
                             select(cat)
                         }
                     }
@@ -104,7 +104,7 @@ private struct SubcategoryPickerView: View {
                 // Sélectionner la catégorie seule, sans sous-catégorie.
                 CategoryCell(
                     emoji: parent.emoji,
-                    name: "Toute la catégorie",
+                    name: NSLocalizedString("Toute la catégorie", comment: ""),
                     selected: category == parent && subcategory == nil
                 ) {
                     category = parent
@@ -114,7 +114,7 @@ private struct SubcategoryPickerView: View {
                 ForEach(subs) { sub in
                     CategoryCell(
                         emoji: sub.emoji.isEmpty ? parent.emoji : sub.emoji,
-                        name: sub.name,
+                        name: sub.displayName,
                         selected: subcategory == sub
                     ) {
                         category = parent
@@ -126,7 +126,7 @@ private struct SubcategoryPickerView: View {
             .padding(20)
         }
         .background(Color.budgetBg)
-        .navigationTitle(parent.name)
+        .navigationTitle(parent.displayName)
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -150,19 +150,19 @@ struct IncomeCategoryPickerView: View {
     private var filtered: [IncomeCategory] {
         let q = search.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return categories }
-        return categories.filter { $0.name.localizedCaseInsensitiveContains(q) }
+        return categories.filter { $0.displayName.localizedCaseInsensitiveContains(q) }
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 20) {
-                    CategoryCell(emoji: "🚫", name: "Aucune", selected: incomeCategory == nil) {
+                    CategoryCell(emoji: "🚫", name: NSLocalizedString("Aucune", comment: ""), selected: incomeCategory == nil) {
                         incomeCategory = nil
                         dismiss()
                     }
                     ForEach(filtered) { cat in
-                        CategoryCell(emoji: cat.emoji, name: cat.name, selected: cat == incomeCategory) {
+                        CategoryCell(emoji: cat.emoji, name: cat.displayName, selected: cat == incomeCategory) {
                             incomeCategory = cat
                             dismiss()
                         }

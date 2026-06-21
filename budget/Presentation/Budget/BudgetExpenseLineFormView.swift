@@ -71,17 +71,17 @@ struct BudgetExpenseLineFormView: View {
                                 Text("Globale (toute la catégorie)").tag(Subcategory?.none)
                             }
                             ForEach(availableSubcategories) { sub in
-                                Text(sub.name).tag(Optional(sub))
+                                Text(sub.displayName).tag(Optional(sub))
                             }
                         }
                     } else {
-                        LabeledContent("Cible", value: line?.subcategory?.name ?? "Budget global")
+                        LabeledContent("Cible", value: line?.subcategory?.displayName ?? NSLocalizedString("Budget global", comment: ""))
                     }
                     HStack {
                         TextField("0,00", text: $amountText)
                             .keyboardType(.decimalPad)
                             .font(.title3.weight(.semibold))
-                        Text("€ / mois")
+                        Text("\(AmountFormatter.currencySymbol) / mois")
                             .foregroundStyle(Color.budgetTextMute)
                     }
                     Picker("Fréquence", selection: $frequency) {

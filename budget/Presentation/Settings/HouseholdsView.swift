@@ -10,8 +10,6 @@ struct HouseholdsView: View {
     @State private var showCreate = false
     @State private var newName = ""
     @State private var createAsCloud = true
-    @State private var renameTarget: Household?
-    @State private var renameText = ""
     @State private var deleteTarget: Household?
     @State private var deleteConfirmText = ""
     @State private var promoteTarget: Household?
@@ -98,14 +96,6 @@ struct HouseholdsView: View {
         }
         .sheet(isPresented: $showCreate) {
             createSheet
-        }
-        .alert("Renommer le foyer", isPresented: Binding(
-            get: { renameTarget != nil },
-            set: { if !$0 { renameTarget = nil } }
-        )) {
-            TextField("Nom du foyer", text: $renameText)
-            Button("Annuler", role: .cancel) {}
-            Button("Renommer") { rename() }
         }
         .alert("Supprimer ce foyer ?", isPresented: Binding(
             get: { deleteTarget != nil },
@@ -294,13 +284,14 @@ struct HouseholdsView: View {
                     Label("Supprimer", systemImage: "trash")
                 }
             }
-            Button {
-                renameTarget = household
-                renameText = household.name
-            } label: {
-                Label("Renommer", systemImage: "pencil")
+            if !household.isOrphan {
+                Button {
+                    detailTarget = household
+                } label: {
+                    Label("Éditer", systemImage: "pencil")
+                }
+                .tint(Color.budgetAccent)
             }
-            .tint(Color.budgetAccent)
         }
         .swipeActions(edge: .leading, allowsFullSwipe: false) {
             if !isCloud && session.isAuthenticated {
@@ -312,14 +303,6 @@ struct HouseholdsView: View {
                 }
                 .tint(Color.budgetPrimary)
             }
-            if isCloud && !household.isOrphan {
-                Button {
-                    detailTarget = household
-                } label: {
-                    Label("Détails", systemImage: "info.circle")
-                }
-                .tint(Color.budgetAccent)
-            }
         }
     }
 
@@ -328,7 +311,7 @@ struct HouseholdsView: View {
         errorMessage = nil
 
         if household.isOrphan {
-            errorMessage = "Vous n'avez plus accès à ce foyer. Supprimez-le de cet appareil."
+            errorMessage = NSLocalizedString("Vous n'avez plus accès à ce foyer. Supprimez-le de cet appareil.", comment: "")
             return
         }
 
@@ -356,6 +339,8 @@ struct HouseholdsView: View {
             h.isDefault = (h == household)
         }
         try? modelContext.save()
+        Currency.setActive(household.currencyCode)
+        AppLocale.setActive(household.locale)
     }
 
     private func create() async {
@@ -363,15 +348,21 @@ struct HouseholdsView: View {
         guard !name.isEmpty else { return }
         errorMessage = nil
 
+        // Défauts dérivés du système ; le foyer pourra être édité ensuite.
+        let currency = Currency.systemDefault()
+        let locale = AppLocale.systemDefault()
+
         if createAsCloud && session.isAuthenticated {
             do {
-                let server = try await session.createCloudHousehold(name: name)
+                let server = try await session.createCloudHousehold(name: name, currency: currency, locale: locale)
                 guard let userId = session.user?.id else { return }
                 let household = Household(
                     serverId: server.id,
                     ownerUserId: userId,
                     isAnonymous: false,
-                    name: server.name
+                    name: server.name,
+                    currencyCode: server.currency,
+                    locale: server.locale
                 )
                 household.members.append(HouseholdMember(displayName: "Moi", isMe: true))
                 modelContext.insert(household)
@@ -381,7 +372,7 @@ struct HouseholdsView: View {
                 return
             }
         } else {
-            let household = Household(isAnonymous: true, name: name)
+            let household = Household(isAnonymous: true, name: name, currencyCode: currency, locale: locale)
             household.members.append(HouseholdMember(displayName: "Moi", isMe: true))
             modelContext.insert(household)
             try? modelContext.save()
@@ -389,36 +380,6 @@ struct HouseholdsView: View {
 
         showCreate = false
         newName = ""
-    }
-
-    private func rename() {
-        guard let target = renameTarget else { return }
-        let name = renameText.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty else { return }
-        renameTarget = nil
-        errorMessage = nil
-
-        if let serverId = target.serverId {
-            working = target.id
-            Task {
-                do {
-                    try await session.renameCloudHousehold(serverId: serverId, name: name)
-                    target.name = name
-                    try? modelContext.save()
-                } catch is URLError {
-                    PendingHouseholdOpStore.enqueueRename(serverId: serverId, name: name)
-                    target.name = name
-                    try? modelContext.save()
-                    errorMessage = "Hors ligne. Renommage enregistré, sera synchronisé plus tard."
-                } catch {
-                    errorMessage = error.localizedDescription
-                }
-                working = nil
-            }
-        } else {
-            target.name = name
-            try? modelContext.save()
-        }
     }
 
     private func delete() {
@@ -448,7 +409,7 @@ struct HouseholdsView: View {
                 } catch is URLError {
                     PendingHouseholdOpStore.enqueueDelete(serverId: serverId)
                     await finalizeLocalDeletion()
-                    errorMessage = "Hors ligne. Suppression enregistrée, sera synchronisée plus tard."
+                    errorMessage = NSLocalizedString("Hors ligne. Suppression enregistrée, sera synchronisée plus tard.", comment: "")
                 } catch {
                     errorMessage = error.localizedDescription
                 }

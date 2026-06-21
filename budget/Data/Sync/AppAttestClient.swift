@@ -9,7 +9,7 @@ enum AppAttestError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .unsupported:
-            return "App Attest n'est pas disponible sur cet appareil."
+            return NSLocalizedString("App Attest n'est pas disponible sur cet appareil.", comment: "")
         case .serverRejected(let message):
             return message
         }
@@ -99,7 +99,7 @@ final class AppAttestClient: Sendable {
         ]
         let response: ChallengeResponse = try await postJSON(path: "/mobile/security/challenge", payload: payload)
         guard response.success, let challenge = response.challenge else {
-            throw AppAttestError.serverRejected(response.error ?? "Challenge refusé par le serveur.")
+            throw AppAttestError.serverRejected(response.error ?? NSLocalizedString("Challenge refusé par le serveur.", comment: ""))
         }
         return challenge
     }
@@ -119,7 +119,7 @@ final class AppAttestClient: Sendable {
         ]
         let response: AttestResponse = try await postJSON(path: "/mobile/security/attest", payload: payload)
         guard response.success else {
-            throw AppAttestError.serverRejected(response.error ?? "Attestation refusée par le serveur.")
+            throw AppAttestError.serverRejected(response.error ?? NSLocalizedString("Attestation refusée par le serveur.", comment: ""))
         }
     }
 

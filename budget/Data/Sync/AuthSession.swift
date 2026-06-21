@@ -16,6 +16,24 @@ struct AuthUser: Codable, Equatable {
 struct ServerHousehold: Codable, Equatable {
     let id: Int
     let name: String
+    var currency: String
+    var locale: String
+
+    init(id: Int, name: String, currency: String = Currency.default, locale: String = AppLocale.default) {
+        self.id = id
+        self.name = name
+        self.currency = currency
+        self.locale = locale
+    }
+
+    // Décodage tolérant : les blobs cachés d'anciennes versions n'ont ni `currency` ni `locale`.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(Int.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        currency = (try c.decodeIfPresent(String.self, forKey: .currency)) ?? Currency.default
+        locale = (try c.decodeIfPresent(String.self, forKey: .locale)) ?? AppLocale.default
+    }
 }
 
 @Observable
@@ -25,7 +43,21 @@ final class AuthSession {
     private static let householdKey = "auth.household"
 
     private(set) var user: AuthUser?
-    private(set) var currentHousehold: ServerHousehold?
+
+    /// Garde-fou contre les effets de bord pendant la **construction**. `@State = AuthSession()`
+    /// réévalue `AuthSession()` à chaque reconstruction de `ContentView` (déclenchée notamment
+    /// par un changement de langue). Sans ce flag, le `didSet` ré-appliquerait le locale du foyer
+    /// cloud persisté et écraserait le choix de langue en cours. Passe à `true` une seule fois via
+    /// `bootstrap()` sur l'instance réelle.
+    private var hasBootstrapped = false
+
+    private(set) var currentHousehold: ServerHousehold? {
+        didSet {
+            guard hasBootstrapped else { return }
+            if let code = currentHousehold?.currency { Currency.setActive(code) }
+            if let loc = currentHousehold?.locale { AppLocale.setActive(loc) }
+        }
+    }
     private(set) var serverHouseholds: [ServerHousehold] = []
     var justRegistered: Bool = false
 
@@ -47,6 +79,16 @@ final class AuthSession {
             user = nil
             currentHousehold = nil
         }
+    }
+
+    /// Applique **une seule fois** (au démarrage réel de l'app) les réglages devise/langue du
+    /// foyer courant. À appeler depuis `ContentView.task`. Idempotent. Après ça, tout changement
+    /// de `currentHousehold` (switch de foyer) ré-applique via le `didSet`.
+    func bootstrap() {
+        guard !hasBootstrapped else { return }
+        hasBootstrapped = true
+        if let code = currentHousehold?.currency { Currency.setActive(code) }
+        if let loc = currentHousehold?.locale { AppLocale.setActive(loc) }
     }
 
     private func migrateTokensIfNeeded() {
@@ -208,10 +250,12 @@ final class AuthSession {
             struct Item: Decodable {
                 let id: Int
                 let name: String
+                let currency: String?
+                let locale: String?
                 let memberCount: Int?
 
                 enum CodingKeys: String, CodingKey {
-                    case id, name
+                    case id, name, currency, locale
                     case memberCount = "member_count"
                 }
             }
@@ -233,7 +277,7 @@ final class AuthSession {
         )
         guard response.success else { throw APIError.invalidResponse }
         serverHouseholds = response.households.map {
-            ServerHousehold(id: $0.id, name: $0.name)
+            ServerHousehold(id: $0.id, name: $0.name, currency: $0.currency ?? Currency.default, locale: $0.locale ?? AppLocale.default)
         }
         if let currentId = response.currentHouseholdId,
            let match = serverHouseholds.first(where: { $0.id == currentId }) {
@@ -242,7 +286,11 @@ final class AuthSession {
         }
     }
 
-    func createCloudHousehold(name: String) async throws -> ServerHousehold {
+    func createCloudHousehold(
+        name: String,
+        currency: String = Currency.systemDefault(),
+        locale: String = AppLocale.systemDefault()
+    ) async throws -> ServerHousehold {
         struct CreateResponse: Decodable {
             let success: Bool
             let error: String?
@@ -252,10 +300,10 @@ final class AuthSession {
             CreateResponse.self,
             method: "POST",
             path: "/budget/households",
-            body: ["name": name]
+            body: ["name": name, "currency": currency, "locale": locale]
         )
         guard response.success, let household = response.household else {
-            throw APIError.http(400, response.error ?? "Création foyer refusée.")
+            throw APIError.http(400, response.error ?? NSLocalizedString("Création foyer refusée.", comment: ""))
         }
         serverHouseholds.append(household)
         return household
@@ -274,7 +322,7 @@ final class AuthSession {
             body: ["name": name]
         )
         guard response.success else {
-            throw APIError.http(400, response.error ?? "Renommage refusé.")
+            throw APIError.http(400, response.error ?? NSLocalizedString("Renommage refusé.", comment: ""))
         }
         if let idx = serverHouseholds.firstIndex(where: { $0.id == serverId }),
            let updated = response.household {
@@ -283,6 +331,60 @@ final class AuthSession {
                 currentHousehold = updated
                 UserDefaults.standard.set(try? JSONEncoder().encode(updated), forKey: Self.householdKey)
             }
+        }
+    }
+
+    /// PATCH la devise d'un foyer cloud. Met à jour le cache local + la devise active si c'est le foyer courant.
+    func setCurrencyCloud(serverId: Int, currency: String) async throws {
+        struct CurrencyResponse: Decodable {
+            let success: Bool
+            let error: String?
+            let household: ServerHousehold?
+        }
+        let response: CurrencyResponse = try await APIClient.shared.send(
+            CurrencyResponse.self,
+            method: "PATCH",
+            path: "/budget/households/\(serverId)/currency",
+            body: ["currency": currency]
+        )
+        guard response.success, let updated = response.household else {
+            throw APIError.http(400, response.error ?? NSLocalizedString("Changement de devise refusé.", comment: ""))
+        }
+        // Endpoint /currency renvoie un foyer partiel (sans locale) : ne muter que la devise.
+        if let idx = serverHouseholds.firstIndex(where: { $0.id == serverId }) {
+            serverHouseholds[idx].currency = updated.currency
+        }
+        if var current = currentHousehold, current.id == serverId {
+            current.currency = updated.currency
+            currentHousehold = current
+            UserDefaults.standard.set(try? JSONEncoder().encode(current), forKey: Self.householdKey)
+        }
+    }
+
+    /// PATCH la langue d'un foyer cloud. Met à jour le cache local.
+    func setLocaleCloud(serverId: Int, locale: String) async throws {
+        struct LocaleResponse: Decodable {
+            let success: Bool
+            let error: String?
+            let household: ServerHousehold?
+        }
+        let response: LocaleResponse = try await APIClient.shared.send(
+            LocaleResponse.self,
+            method: "PATCH",
+            path: "/budget/households/\(serverId)/locale",
+            body: ["locale": locale]
+        )
+        guard response.success, let updated = response.household else {
+            throw APIError.http(400, response.error ?? NSLocalizedString("Changement de langue refusé.", comment: ""))
+        }
+        // Endpoint /locale renvoie un foyer partiel (sans devise) : ne muter que la langue.
+        if let idx = serverHouseholds.firstIndex(where: { $0.id == serverId }) {
+            serverHouseholds[idx].locale = updated.locale
+        }
+        if var current = currentHousehold, current.id == serverId {
+            current.locale = updated.locale
+            currentHousehold = current
+            UserDefaults.standard.set(try? JSONEncoder().encode(current), forKey: Self.householdKey)
         }
     }
 
@@ -304,7 +406,7 @@ final class AuthSession {
             assertion: true
         )
         guard response.success else {
-            throw APIError.http(400, response.error ?? "Suppression refusée.")
+            throw APIError.http(400, response.error ?? NSLocalizedString("Suppression refusée.", comment: ""))
         }
         serverHouseholds.removeAll { $0.id == serverId }
         if currentHousehold?.id == serverId {
@@ -338,7 +440,7 @@ final class AuthSession {
               let access = response.accessToken,
               let refresh = response.refreshToken,
               let household = response.household else {
-            throw APIError.http(400, response.error ?? "Invitation refusée.")
+            throw APIError.http(400, response.error ?? NSLocalizedString("Invitation refusée.", comment: ""))
         }
         APIClient.shared.storeTokens(access: access, refresh: refresh)
         currentHousehold = household
@@ -375,7 +477,7 @@ final class AuthSession {
               let access = response.accessToken,
               let refresh = response.refreshToken,
               let household = response.household else {
-            throw APIError.http(400, response.error ?? "Switch foyer refusé.")
+            throw APIError.http(400, response.error ?? NSLocalizedString("Switch foyer refusé.", comment: ""))
         }
         APIClient.shared.storeTokens(access: access, refresh: refresh)
         currentHousehold = household
@@ -411,7 +513,7 @@ final class AuthSession {
               let access = response.accessToken,
               let refresh = response.refreshToken,
               let user = response.user else {
-            throw APIError.http(401, response.error ?? "Authentification refusée.")
+            throw APIError.http(401, response.error ?? NSLocalizedString("Authentification refusée.", comment: ""))
         }
         APIClient.shared.storeTokens(access: access, refresh: refresh)
         persist(user: user, household: response.household)

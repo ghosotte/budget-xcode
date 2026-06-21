@@ -60,7 +60,7 @@ struct CategoryBudgetDetailView: View {
                 }
             }
             .background(Color.budgetBg)
-            .navigationTitle("\(category.emoji) \(category.name)")
+            .navigationTitle("\(category.emoji) \(category.displayName)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -147,7 +147,7 @@ private struct LineRow: View {
     var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(line.subcategory?.name ?? "Budget global")
+                Text(line.subcategory?.displayName ?? NSLocalizedString("Budget global", comment: ""))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.budgetText)
                 Text(line.frequency.label)

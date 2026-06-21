@@ -10,7 +10,10 @@ enum TransactionFormKind: String, Identifiable, CaseIterable {
     case expense, income
     var id: Self { self }
 
-    var label: String {
+    /// `LocalizedStringKey` (et non `String(localized:)`) pour que la résolution passe par
+    /// le bundle surchargé (`LocalizedBundle`) qui suit la langue du foyer. `String(localized:)`
+    /// court-circuite cette surcharge et renverrait toujours le français source.
+    var label: LocalizedStringKey {
         switch self {
         case .expense: return "Dépense"
         case .income:  return "Revenu"
@@ -37,6 +40,7 @@ struct TransactionFormView: View {
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(LanguageStore.self) private var language
     @AppStorage("appTheme") private var themeRaw = AppTheme.system.rawValue
     @State private var authSession = AuthSession()
     @State private var network = NetworkMonitor.shared
@@ -50,7 +54,7 @@ struct ContentView: View {
         selectedTab == .transactions && transactionsFilter == .incomes ? .income : .expense
     }
 
-    var body: some View {
+    private var tabs: some View {
         TabView(selection: $selectedTab) {
             DashboardView(
                 onSeeAllExpenses: { selectedTab = .transactions },
@@ -87,14 +91,41 @@ struct ContentView: View {
         .sheet(item: $formKind) { kind in
             TransactionFormView(initial: kind)
         }
+        // Reconstruit tout le sous-arbre des onglets au changement de langue → les `Text`
+        // sont ré-résolus via le bundle surchargé (le `.task` reste sur le `ZStack` stable).
+        .id(language.code)
+    }
+
+    var body: some View {
+        // Le `ZStack` garde une identité STABLE : c'est lui qui porte `.task` (cold-start)
+        // et les autres modificateurs de cycle de vie, donc ils ne re-tournent pas quand la
+        // langue change. Seul le `TabView` interne reçoit `.id(language.code)` : changer de
+        // langue (foyer local OU cloud) reconstruit l'arbre des onglets et force la
+        // ré-résolution des chaînes via le bundle surchargé. La sélection d'onglet est
+        // préservée (binding sur `$selectedTab`, état hors du sous-arbre reconstruit).
+        let _ = print("🌐LANG ContentView body render language.code=\(language.code)")
+        ZStack {
+            tabs
+        }
         .environment(authSession)
         .onOpenURL { url in
             GIDSignIn.sharedInstance.handle(url)
         }
         .task {
             MetricsCollector.shared.subscribe()
+            // Applique une seule fois les réglages (devise/langue) du foyer cloud courant.
+            // `AuthSession.init` ne le fait plus (effet de bord rejoué à chaque reconstruction
+            // de ContentView → écrasait le changement de langue).
+            authSession.bootstrap()
             SeedService.seedIfNeeded(context: modelContext)
             RecurringService.generateExpenses(context: modelContext)
+            // Foyer local (hors ligne) : la devise active vient du foyer par défaut.
+            // En authentifié, AuthSession a déjà appliqué la devise du foyer cloud au démarrage.
+            if !authSession.isAuthenticated,
+               let def = (try? modelContext.fetch(FetchDescriptor<Household>()))?.first(where: { $0.isDefault }) {
+                Currency.setActive(def.currencyCode)
+                AppLocale.setActive(def.locale)
+            }
             if authSession.isAuthenticated {
                 do {
                     try await SyncService.syncAll(session: authSession, context: modelContext)

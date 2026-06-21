@@ -186,7 +186,7 @@ struct BudgetView: View {
                                         .frame(width: 34, height: 34)
                                         .background(RoundedRectangle(cornerRadius: 9).fill(Color.budgetSurfaceMute))
                                     VStack(alignment: .leading, spacing: 1) {
-                                        Text(line.incomeCategory?.name ?? "Revenu")
+                                        Text(line.incomeCategory?.displayName ?? NSLocalizedString("Revenu", comment: ""))
                                             .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.budgetText)
                                         Text(line.frequency.label)
@@ -267,7 +267,7 @@ private struct CategoryBudgetCard: View {
             HStack(spacing: 8) {
                 Text(category.emoji)
                     .font(.system(size: 18))
-                Text(category.name)
+                Text(category.displayName)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.budgetText)
                     .lineLimit(1)

@@ -9,6 +9,8 @@ final class Household {
     var isAnonymous: Bool = true
     var isOrphan: Bool = false
     var name: String = ""
+    var currencyCode: String = "EUR"
+    var locale: String = "fr"
     var createdAt: Date = Date.distantPast
     var isDefault: Bool = false
 
@@ -31,6 +33,8 @@ final class Household {
         ownerUserId: Int? = nil,
         isAnonymous: Bool = true,
         name: String,
+        currencyCode: String = "EUR",
+        locale: String = "fr",
         createdAt: Date = .now,
         isDefault: Bool = false
     ) {
@@ -39,6 +43,8 @@ final class Household {
         self.ownerUserId = ownerUserId
         self.isAnonymous = isAnonymous
         self.name = name
+        self.currencyCode = currencyCode
+        self.locale = locale
         self.createdAt = createdAt
         self.isDefault = isDefault
     }

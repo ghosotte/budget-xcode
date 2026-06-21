@@ -67,14 +67,14 @@ struct BudgetIncomeLineFormView: View {
                     Picker("Catégorie", selection: $incomeCategory) {
                         Text("Aucune").tag(IncomeCategory?.none)
                         ForEach(availableCategories) { cat in
-                            Text("\(cat.emoji) \(cat.name)").tag(Optional(cat))
+                            Text("\(cat.emoji) \(cat.displayName)").tag(Optional(cat))
                         }
                     }
                     HStack {
                         TextField("0,00", text: $amountText)
                             .keyboardType(.decimalPad)
                             .font(.title3.weight(.semibold))
-                        Text("€ / mois")
+                        Text("\(AmountFormatter.currencySymbol) / mois")
                             .foregroundStyle(Color.budgetTextMute)
                     }
                     Picker("Fréquence", selection: $frequency) {
@@ -131,11 +131,11 @@ struct BudgetIncomeLineFormView: View {
     private func save() async {
         guard let amount = parsedAmount, amount > 0 else { return }
         guard let incomeCategory else {
-            errorMessage = "Choisis une catégorie de revenu."
+            errorMessage = NSLocalizedString("Choisis une catégorie de revenu.", comment: "")
             return
         }
         if takenCategoryIDs.contains(incomeCategory.id) {
-            errorMessage = "Un revenu prévu existe déjà pour « \(incomeCategory.name) » ce mois-ci."
+            errorMessage = String(format: NSLocalizedString("Un revenu prévu existe déjà pour « %@ » ce mois-ci.", comment: ""), incomeCategory.displayName)
             return
         }
 

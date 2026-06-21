@@ -3,7 +3,7 @@ import SwiftUI
 /// Bouton de validation principal, pleine largeur, à placer en bas d'une modale
 /// via `.safeAreaInset(edge: .bottom)`.
 struct PrimaryActionButton: View {
-    let title: String
+    let title: LocalizedStringKey
     var enabled: Bool = true
     var working: Bool = false
     let action: () -> Void

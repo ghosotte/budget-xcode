@@ -18,7 +18,9 @@ extension Color {
 enum AppTheme: String, CaseIterable {
     case system, light, dark
 
-    var label: String {
+    /// `LocalizedStringKey` pour que `Text(theme.label)` passe par le bundle surchargé
+    /// (`LocalizedBundle`) et suive la langue du foyer.
+    var label: LocalizedStringKey {
         switch self {
         case .system: return "Système"
         case .light:  return "Clair"

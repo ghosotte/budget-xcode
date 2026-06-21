@@ -9,8 +9,8 @@ enum APIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .http(_, let message): return message
-        case .notAuthenticated:     return "Session expirée. Reconnecte-toi."
-        case .invalidResponse:      return "Réponse serveur invalide."
+        case .notAuthenticated:     return NSLocalizedString("Session expirée. Reconnecte-toi.", comment: "")
+        case .invalidResponse:      return NSLocalizedString("Réponse serveur invalide.", comment: "")
         }
     }
 }
@@ -183,7 +183,7 @@ final class APIClient: Sendable {
 
         guard (200..<300).contains(http.statusCode) else {
             let message = (try? JSONDecoder().decode(ErrorEnvelope.self, from: data))?.error
-                ?? "Erreur serveur (\(http.statusCode))."
+                ?? String(format: NSLocalizedString("Erreur serveur (%d).", comment: ""), http.statusCode)
             throw APIError.http(http.statusCode, message)
         }
 

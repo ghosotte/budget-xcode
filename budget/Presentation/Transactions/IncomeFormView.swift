@@ -42,8 +42,8 @@ struct IncomeFormView: View {
     }
 
     private var categoryLabel: String {
-        guard let incomeCategory else { return "Aucune" }
-        return "\(incomeCategory.emoji) \(incomeCategory.name)"
+        guard let incomeCategory else { return NSLocalizedString("Aucune", comment: "") }
+        return "\(incomeCategory.emoji) \(incomeCategory.displayName)"
     }
 
     var body: some View {
@@ -54,7 +54,7 @@ struct IncomeFormView: View {
                         TextField("0,00", text: $amountText)
                             .keyboardType(.decimalPad)
                             .font(.title2.weight(.semibold))
-                        Text("€")
+                        Text(AmountFormatter.currencySymbol)
                             .foregroundStyle(Color.budgetTextMute)
                     }
                 }
@@ -120,7 +120,7 @@ struct IncomeFormView: View {
     private func save() {
         guard let amount = parsedAmount, amount > 0 else { return }
         let trimmedLabel = label.trimmingCharacters(in: .whitespaces)
-        let finalLabel = trimmedLabel.isEmpty ? (incomeCategory?.name ?? "Revenu") : trimmedLabel
+        let finalLabel = trimmedLabel.isEmpty ? (incomeCategory?.displayName ?? NSLocalizedString("Revenu", comment: "")) : trimmedLabel
         let finalNotes = notes.trimmingCharacters(in: .whitespaces).isEmpty ? nil : notes
 
         if let income {
