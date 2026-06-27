@@ -122,6 +122,7 @@ struct IncomeFormView: View {
             income.receivedAt = date
             income.notes = finalNotes
             income.updatedAt = .now
+            income.refreshEffectiveMonth()
             PushService.markForUpload(&income.syncStatus, household: income.household)
         } else {
             let new = IncomeEntry(

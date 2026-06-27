@@ -252,7 +252,6 @@ struct HouseholdDetailView: View {
             }
             household.locale = code
             try? modelContext.save()
-            print("🌐LANG saveLocale code=\(code) isDefault=\(household.isDefault) isAnonymous=\(household.isAnonymous)")
             // Toujours appliquer : l'utilisateur change la langue depuis l'UI, on bascule
             // l'app immédiatement (le gate `isDefault` empêchait le switch sur foyer local).
             AppLocale.setActive(code)

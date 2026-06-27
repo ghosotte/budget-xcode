@@ -141,6 +141,7 @@ struct ExpenseFormView: View {
             expense.tags = tags
             expense.notes = finalNotes
             expense.updatedAt = .now
+            expense.refreshEffectiveMonth()
             PushService.markForUpload(&expense.syncStatus, household: expense.household)
         } else {
             let new = Expense(

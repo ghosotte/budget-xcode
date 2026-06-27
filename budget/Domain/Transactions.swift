@@ -19,6 +19,12 @@ final class Expense {
     var updatedAt: Date?
     var syncStatus: SyncStatus = SyncStatus.local
 
+    /// Mois comptable dénormalisé (début de mois) = `accountingMonth ?? spentAt`. Stocké pour que
+    /// les `@Query` filtrent côté SQLite par mois (perf mémoire) sans charger tout l'historique.
+    /// Maintenu via `refreshEffectiveMonth()` à chaque écriture de `spentAt`/`accountingMonth`.
+    /// Défaut `.distantPast` : backfill au cold start (voir `EffectiveMonthBackfill`).
+    var effectiveMonth: Date = Date.distantPast
+
     init(
         id: UUID = UUID(),
         serverId: Int? = nil,
@@ -49,10 +55,12 @@ final class Expense {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.syncStatus = syncStatus
+        self.effectiveMonth = Calendar.current.startOfMonth(for: accountingMonth ?? spentAt)
     }
 
-    var effectiveMonth: Date {
-        Calendar.current.startOfMonth(for: accountingMonth ?? spentAt)
+    /// Recalcule `effectiveMonth`. À appeler après toute mutation de `spentAt` ou `accountingMonth`.
+    func refreshEffectiveMonth() {
+        effectiveMonth = Calendar.current.startOfMonth(for: accountingMonth ?? spentAt)
     }
 
     var status: ExpenseStatus {
@@ -74,6 +82,9 @@ final class IncomeEntry {
     var createdAt: Date = Date.distantPast
     var updatedAt: Date?
     var syncStatus: SyncStatus = SyncStatus.local
+
+    /// Mois comptable dénormalisé (début de mois) = `accountingMonth ?? receivedAt`. Voir `Expense.effectiveMonth`.
+    var effectiveMonth: Date = Date.distantPast
 
     init(
         id: UUID = UUID(),
@@ -99,10 +110,12 @@ final class IncomeEntry {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.syncStatus = syncStatus
+        self.effectiveMonth = Calendar.current.startOfMonth(for: accountingMonth ?? receivedAt)
     }
 
-    var effectiveMonth: Date {
-        Calendar.current.startOfMonth(for: accountingMonth ?? receivedAt)
+    /// Recalcule `effectiveMonth`. À appeler après toute mutation de `receivedAt` ou `accountingMonth`.
+    func refreshEffectiveMonth() {
+        effectiveMonth = Calendar.current.startOfMonth(for: accountingMonth ?? receivedAt)
     }
 
     var status: ExpenseStatus {

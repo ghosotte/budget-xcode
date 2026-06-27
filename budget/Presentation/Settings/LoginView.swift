@@ -343,7 +343,7 @@ struct LoginView: View {
     private func postLoginSync() async {
         do {
             try await SyncService.syncAll(session: session, context: modelContext)
-            try await SyncService.pullCategories(context: modelContext)
+            try await SyncEngineProvider.shared(modelContext.container).pullCategories()
             try? modelContext.save()
         } catch {
             errorMessage = String(format: NSLocalizedString("Connecté, mais la synchronisation a échoué : %@", comment: ""), error.localizedDescription)

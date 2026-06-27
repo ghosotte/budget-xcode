@@ -37,18 +37,25 @@ enum BundleLanguage {
 @MainActor
 final class LanguageStore {
     private(set) var code: String
+    // nonisolated(unsafe) required: deinit is nonisolated, NotificationCenter.removeObserver is thread-safe,
+    // and the property is written once in init before any concurrent access is possible.
+    nonisolated(unsafe) private var languageObserver: NSObjectProtocol?
 
     init() {
         code = AppLocale.activeCode
         BundleLanguage.set(code)
-        NotificationCenter.default.addObserver(
+        languageObserver = NotificationCenter.default.addObserver(
             forName: BundleLanguage.didChange, object: nil, queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated {
-                let new = AppLocale.activeCode
-                print("🌐LANG observer fired -> new code=\(new) (was \(self?.code ?? "nil"))")
-                self?.code = new
+                self?.code = AppLocale.activeCode
             }
+        }
+    }
+
+    deinit {
+        if let languageObserver {
+            NotificationCenter.default.removeObserver(languageObserver)
         }
     }
 }

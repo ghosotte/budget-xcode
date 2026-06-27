@@ -190,9 +190,12 @@ struct HistoryView: View {
                 let pct = NSDecimalNumber(decimal: total / totalAll).doubleValue * 100
 
                 let subItems: [SubcategoryGroup] = {
-                    let bySub = Dictionary(grouping: items) { $0.subcategory }
-                    return bySub.compactMap { (sub, subItems) -> SubcategoryGroup? in
-                        guard let sub else { return nil }
+                    // Groupe par `id` (UUID) plutôt que par l'objet @Model : clé scalaire Hashable triviale,
+                    // évite de surcharger le solver de types sur cette expression imbriquée.
+                    let withSub = items.filter { $0.subcategory != nil }
+                    let bySub = Dictionary(grouping: withSub) { $0.subcategory!.id }
+                    return bySub.compactMap { (_, subItems) -> SubcategoryGroup? in
+                        guard let sub = subItems.first?.subcategory else { return nil }
                         let subTotal = subItems.reduce(Decimal(0)) { $0 + $1.amount }
                         guard subTotal > 0 else { return nil }
                         return SubcategoryGroup(

@@ -10,11 +10,20 @@ struct BudgetView: View {
     @Query(sort: \Category.sortOrder) private var categories: [Category]
     @Query private var budgetExpenseLines: [BudgetExpenseLine]
     @Query private var budgetIncomes: [BudgetIncome]
+    // Transactions scopées au mois affiché (perf RAM). Budget lines restent globales (peu nombreuses).
     @Query private var expenses: [Expense]
     @Query private var incomeEntries: [IncomeEntry]
 
     @State private var selectedCategory: Category?
     @State private var incomeFormTarget: IncomeLineFormTarget?
+
+    init(month: Date) {
+        self.month = month
+        _expenses = Query(filter: Expense.monthPredicate(month))
+        _incomeEntries = Query(filter: IncomeEntry.monthPredicate(month))
+        _budgetExpenseLines = Query(filter: BudgetExpenseLine.activeMonthPredicate(month))
+        _budgetIncomes = Query(filter: BudgetIncome.activeMonthPredicate(month))
+    }
 
     private var household: Household? {
         households.first(where: \.isDefault) ?? households.first

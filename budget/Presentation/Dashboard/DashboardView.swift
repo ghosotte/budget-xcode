@@ -2,8 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct DashboardView: View {
-    var onSeeAllExpenses: () -> Void = {}
-    var onAddExpense: () -> Void = {}
+    let onSeeAllExpenses: () -> Void
+    let onAddExpense: () -> Void
 
     @Environment(\.modelContext) private var modelContext
     @Environment(AuthSession.self) private var session
@@ -12,10 +12,21 @@ struct DashboardView: View {
     @State private var showSearch = false
 
     @Query private var households: [Household]
+    // Dashboard = mois courant uniquement : `@Query` scopé à ce mois (perf RAM, pas tout l'historique).
     @Query private var expenses: [Expense]
     @Query private var incomeEntries: [IncomeEntry]
     @Query private var budgetExpenseLines: [BudgetExpenseLine]
     @Query private var budgetIncomes: [BudgetIncome]
+
+    init(onSeeAllExpenses: @escaping () -> Void = {}, onAddExpense: @escaping () -> Void = {}) {
+        self.onSeeAllExpenses = onSeeAllExpenses
+        self.onAddExpense = onAddExpense
+        let month = Calendar.current.startOfMonth(for: .now)
+        _expenses = Query(filter: Expense.monthPredicate(month))
+        _incomeEntries = Query(filter: IncomeEntry.monthPredicate(month))
+        _budgetExpenseLines = Query(filter: BudgetExpenseLine.activeMonthPredicate(month))
+        _budgetIncomes = Query(filter: BudgetIncome.activeMonthPredicate(month))
+    }
 
     private var household: Household? {
         households.first(where: \.isDefault) ?? households.first
@@ -147,6 +158,9 @@ struct DashboardView: View {
         }
         .task(id: currentMonth) {
             await MonthSyncService.refreshMonth(currentMonth, session: session, context: modelContext)
+        }
+        .refreshable {
+            await MonthSyncService.refreshMonth(currentMonth, session: session, context: modelContext, force: true)
         }
     }
 

@@ -111,7 +111,6 @@ struct ContentView: View {
         // langue (foyer local OU cloud) reconstruit l'arbre des onglets et force la
         // ré-résolution des chaînes via le bundle surchargé. La sélection d'onglet est
         // préservée (binding sur `$selectedTab`, état hors du sous-arbre reconstruit).
-        let _ = print("🌐LANG ContentView body render language.code=\(language.code)")
         ZStack {
             tabs
         }
@@ -139,6 +138,7 @@ struct ContentView: View {
             // de ContentView → écrasait le changement de langue).
             authSession.bootstrap()
             SeedService.seedIfNeeded(context: modelContext)
+            EffectiveMonthBackfill.runIfNeeded(context: modelContext)
             RecurringCleanupService.purgeOrphanedLocalInstances(context: modelContext)
             // Le foyer ACTIF (local `isDefault`, persistant) pilote devise + langue, qu'on soit
             // hors ligne OU connecté : `bootstrap()` a posé celles du foyer cloud courant, mais le
@@ -151,7 +151,7 @@ struct ContentView: View {
             if authSession.isAuthenticated {
                 do {
                     try await SyncService.syncAll(session: authSession, context: modelContext)
-                    try await SyncService.pullCategories(context: modelContext)
+                    try await SyncEngineProvider.shared(modelContext.container).pullCategories()
                     try modelContext.save()
                 } catch {
                     SyncErrorReporter.report(error, context: "ContentView.task.coldStart", surfacing: true)
@@ -163,6 +163,12 @@ struct ContentView: View {
             Task {
                 do {
                     try await SyncService.quickSync(session: authSession, context: modelContext)
+                    // Tire aussi les transactions fraîches du mois courant (foyer partagé) — le `.task`
+                    // des vues ne re-tourne pas sans changement de mois.
+                    await MonthSyncService.refreshMonth(
+                        Calendar.current.startOfMonth(for: .now),
+                        session: authSession, context: modelContext, force: true
+                    )
                 } catch {
                     SyncErrorReporter.report(error, context: "NetworkMonitor.reconnect")
                 }
@@ -175,6 +181,10 @@ struct ContentView: View {
             Task {
                 do {
                     try await SyncService.quickSync(session: authSession, context: modelContext)
+                    await MonthSyncService.refreshMonth(
+                        Calendar.current.startOfMonth(for: .now),
+                        session: authSession, context: modelContext, force: true
+                    )
                 } catch {
                     SyncErrorReporter.report(error, context: "ContentView.scenePhase.active")
                 }

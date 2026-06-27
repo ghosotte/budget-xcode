@@ -185,6 +185,9 @@ final class AuthSession {
         UserDefaults.standard.removeObject(forKey: Self.householdKey)
         PendingDeleteStore.clear()
         PendingHouseholdOpStore.clear()
+        // Le contexte background de l'engine garde des objets en cache → le jeter après purge des données.
+        SyncEngineProvider.reset()
+        MonthSyncService.invalidate()
 
         if let userId = previousUserId {
             purgeOwnedHouseholds(userId: userId, context: context)
@@ -442,6 +445,8 @@ final class AuthSession {
         if !serverHouseholds.contains(where: { $0.id == household.id }) {
             serverHouseholds.append(household)
         }
+        SyncEngineProvider.reset()
+        MonthSyncService.invalidate()
         return household
     }
 
@@ -476,6 +481,9 @@ final class AuthSession {
         APIClient.shared.storeTokens(access: access, refresh: refresh)
         currentHousehold = household
         UserDefaults.standard.set(try? JSONEncoder().encode(household), forKey: Self.householdKey)
+        // Foyer actif changé → jeter le contexte background en cache + les throttles du mois.
+        SyncEngineProvider.reset()
+        MonthSyncService.invalidate()
         return household
     }
 

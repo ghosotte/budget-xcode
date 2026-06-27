@@ -7,8 +7,12 @@ import SwiftData
 /// that bypassed sync (no serverId, never pushed).
 enum RecurringCleanupService {
     static func purgeOrphanedLocalInstances(context: ModelContext) {
-        let orphans = (try? context.fetch(FetchDescriptor<Expense>()))?
-            .filter { $0.recurringTemplate != nil && $0.serverId == nil } ?? []
+        // Fetch ciblé (orphelins seulement, en général zéro) plutôt que charger TOUT l'historique
+        // des dépenses en mémoire sur le MainActor à chaque cold start.
+        let descriptor = FetchDescriptor<Expense>(
+            predicate: #Predicate { $0.recurringTemplate != nil && $0.serverId == nil }
+        )
+        let orphans = (try? context.fetch(descriptor)) ?? []
         guard !orphans.isEmpty else { return }
         for expense in orphans {
             context.delete(expense)

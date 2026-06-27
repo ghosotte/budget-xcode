@@ -17,12 +17,20 @@ enum Currency {
 
     static func label(for code: String) -> String { "\(code) (\(symbol(for: code)))" }
 
+    // Cache mémoire : `activeCode` était lu sur UserDefaults à chaque appel (par ligne × render ×
+    // formatter → des centaines de lectures au cold start). `setActive` est le seul mutateur.
+    private static var cachedCode: String?
+
     static var activeCode: String {
-        UserDefaults.standard.string(forKey: storageKey) ?? `default`
+        if let cachedCode { return cachedCode }
+        let code = UserDefaults.standard.string(forKey: storageKey) ?? `default`
+        cachedCode = code
+        return code
     }
 
     static func setActive(_ code: String) {
         UserDefaults.standard.set(code, forKey: storageKey)
+        cachedCode = code
     }
 
     /// Devise déduite de la région système, ramenée aux codes supportés (repli `default`).
@@ -52,15 +60,22 @@ enum AppLocale {
         }
     }
 
+    // Cache mémoire (cf. Currency.cachedCode) : évite une lecture UserDefaults par appel de `displayName`
+    // / formatter, soit des centaines au cold start. `setActive` est le seul mutateur.
+    private static var cachedCode: String?
+
     /// Langue du foyer courant. Source de vérité = UserDefaults, poussée comme `Currency.setActive`.
     static var activeCode: String {
-        UserDefaults.standard.string(forKey: storageKey) ?? `default`
+        if let cachedCode { return cachedCode }
+        let code = UserDefaults.standard.string(forKey: storageKey) ?? `default`
+        cachedCode = code
+        return code
     }
 
     static func setActive(_ code: String, caller: String = #function, file: String = #fileID, line: Int = #line) {
         let changed = code != activeCode
-        print("🌐LANG setActive code=\(code) previousActive=\(activeCode) changed=\(changed) ← \(file):\(line) \(caller)")
         UserDefaults.standard.set(code, forKey: storageKey)
+        cachedCode = code
         BundleLanguage.set(code)
         if changed {
             NotificationCenter.default.post(name: BundleLanguage.didChange, object: nil)

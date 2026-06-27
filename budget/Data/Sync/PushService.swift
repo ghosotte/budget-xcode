@@ -112,10 +112,14 @@ enum PushService {
     static func afterLocalChange(session: AuthSession, context: ModelContext) {
         guard session.isAuthenticated else { return }
         Task {
-            do {
-                try await pushPending(session: session, context: context)
-            } catch {
-                SyncErrorReporter.report(error, context: "PushService.afterLocalChange")
+            // Sérialisé via SyncLock : ce push ne doit pas tourner en même temps qu'un pull background
+            // (sinon le pull peut dupliquer une ligne en cours de push). Voir MonthSyncService.
+            try? await SyncLock.run {
+                do {
+                    try await pushPending(session: session, context: context)
+                } catch {
+                    SyncErrorReporter.report(error, context: "PushService.afterLocalChange")
+                }
             }
         }
     }
@@ -178,11 +182,11 @@ enum PushService {
             $0.serverId == session.currentHousehold?.id && $0.ownerUserId == userId
         }) else { return }
 
-        try await pushExpenses(household: household)
-        try await pushIncomes(household: household)
-        try await pushRecurring(household: household)
-        try await pushBudgetExpenseLines(household: household)
-        try await pushBudgetIncomeLines(household: household)
+        try await pushExpenses(household: household, context: context)
+        try await pushIncomes(household: household, context: context)
+        try await pushRecurring(household: household, context: context)
+        try await pushBudgetExpenseLines(household: household, context: context)
+        try await pushBudgetIncomeLines(household: household, context: context)
         try context.save()
     }
 
@@ -264,7 +268,11 @@ enum PushService {
         let transaction: Transaction?
     }
 
-    private static func pushExpenses(household: Household) async throws {
+    // NB : on itère la relation `household.X` et on compare `syncStatus` en Swift. Un `#Predicate`
+    // sur l'enum `SyncStatus` (String/Codable) n'est PAS fiable côté SwiftData (fetch vide → les
+    // transactions ne remontaient plus). La comparaison Swift est correcte.
+
+    private static func pushExpenses(household: Household, context: ModelContext) async throws {
         for expense in household.expenses where expense.syncStatus == .pendingUpload {
             var body: [String: String?] = [
                 "type": "expense",
@@ -294,7 +302,7 @@ enum PushService {
         }
     }
 
-    private static func pushIncomes(household: Household) async throws {
+    private static func pushIncomes(household: Household, context: ModelContext) async throws {
         for income in household.incomeEntries where income.syncStatus == .pendingUpload {
             var body: [String: String?] = [
                 "type": "income",
@@ -338,7 +346,7 @@ enum PushService {
         let recurring: Recurring?
     }
 
-    private static func pushRecurring(household: Household) async throws {
+    private static func pushRecurring(household: Household, context: ModelContext) async throws {
         for template in household.recurringExpenses where template.syncStatus == .pendingUpload {
             var body: [String: String?] = [
                 "amount": NSDecimalNumber(decimal: template.amount).stringValue,
@@ -399,7 +407,7 @@ enum PushService {
         }
     }
 
-    private static func pushBudgetExpenseLines(household: Household) async throws {
+    private static func pushBudgetExpenseLines(household: Household, context: ModelContext) async throws {
         for line in household.budgetExpenseLines where line.syncStatus == .pendingUpload {
             guard let categoryId = line.category?.serverId else { continue }
             var body: [String: String?] = [
@@ -429,7 +437,7 @@ enum PushService {
         }
     }
 
-    private static func pushBudgetIncomeLines(household: Household) async throws {
+    private static func pushBudgetIncomeLines(household: Household, context: ModelContext) async throws {
         for line in household.budgetIncomes where line.syncStatus == .pendingUpload {
             guard let incomeCategoryId = line.incomeCategory?.serverId else { continue }
             var body: [String: String?] = [

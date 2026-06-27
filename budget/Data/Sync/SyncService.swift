@@ -110,25 +110,28 @@ enum SyncService {
     /// Used at login (post-auth) and at app cold start.
     static func syncAll(session: AuthSession, context: ModelContext) async throws {
         guard session.isAuthenticated else { return }
-
-        try await session.refreshMe()
-        try await session.refreshHouseholds()
-        try await HouseholdMigrationService.migrateAnonymousIfNeeded(session: session, context: context)
-        try reconcileServerHouseholds(session: session, context: context)
-        _ = try ensureConnectedHousehold(session: session, context: context)
-        try await PushService.pushPending(session: session, context: context)
-        try context.save()
-        UserDefaults.standard.set(Date.now.timeIntervalSince1970, forKey: "lastSyncAt")
+        try await SyncLock.run {
+            try await session.refreshMe()
+            try await session.refreshHouseholds()
+            try await HouseholdMigrationService.migrateAnonymousIfNeeded(session: session, context: context)
+            try reconcileServerHouseholds(session: session, context: context)
+            _ = try ensureConnectedHousehold(session: session, context: context)
+            try await PushService.pushPending(session: session, context: context)
+            try context.save()
+            UserDefaults.standard.set(Date.now.timeIntervalSince1970, forKey: "lastSyncAt")
+        }
     }
 
     /// Light sync: refresh user + push pending offline ops. Used by the "Synchroniser maintenant" button.
     /// Does NOT pull server households list (handled at cold start) nor categories/recurring/transactions.
     static func quickSync(session: AuthSession, context: ModelContext) async throws {
         guard session.isAuthenticated else { return }
-        try await session.refreshMe()
-        try await PushService.pushPending(session: session, context: context)
-        try context.save()
-        UserDefaults.standard.set(Date.now.timeIntervalSince1970, forKey: "lastSyncAt")
+        try await SyncLock.run {
+            try await session.refreshMe()
+            try await PushService.pushPending(session: session, context: context)
+            try context.save()
+            UserDefaults.standard.set(Date.now.timeIntervalSince1970, forKey: "lastSyncAt")
+        }
     }
 
     static func refreshBudgetLines(session: AuthSession, context: ModelContext) async throws {
@@ -136,10 +139,11 @@ enum SyncService {
         let households = try context.fetch(FetchDescriptor<Household>())
         guard let household = households.first(where: {
             $0.serverId == session.currentHousehold?.id && $0.ownerUserId == userId
-        }) else { return }
+        }), let serverId = household.serverId else { return }
         let month = Calendar.current.startOfMonth(for: .now)
-        try await pullBudgetLines(household: household, month: month, context: context)
-        try context.save()
+        try await SyncEngineProvider.shared(context.container).pullBudgetLines(
+            householdServerId: serverId, userId: userId, month: month
+        )
     }
 
     // MARK: — Foyer connecté
@@ -238,7 +242,7 @@ enum SyncService {
 
     // MARK: — Catégories (mapping serverId)
 
-    static func pullCategories(context: ModelContext) async throws {
+    nonisolated static func pullCategories(context: ModelContext) async throws {
         struct CategoriesResponse: Decodable {
             let success: Bool
             let categories: [CategoryDTO]
@@ -317,7 +321,7 @@ enum SyncService {
 
     // MARK: — Transactions du mois (serveur gagne)
 
-    static func pullTransactions(household: Household, month: Date, context: ModelContext) async throws {
+    nonisolated static func pullTransactions(household: Household, month: Date, context: ModelContext) async throws {
         struct TransactionsResponse: Decodable {
             let success: Bool
             let transactions: [TransactionDTO]
@@ -336,12 +340,24 @@ enum SyncService {
         let serverExpenseIds = Set(response.transactions.filter { $0.type == "expense" }.map(\.id))
         let serverIncomeIds = Set(response.transactions.filter { $0.type == "income" }.map(\.id))
 
-        let localExpenses = household.expenses.filter { $0.effectiveMonth == month }
-        let localIncomes = household.incomeEntries.filter { $0.effectiveMonth == month }
+        // Fetch ciblé sur le mois (prédicat SQLite) plutôt que `household.expenses` qui fault TOUT
+        // l'historique en mémoire sur le main thread. Filtre foyer résiduel (lignes du mois = peu nombreuses).
+        let localExpenses = ((try? context.fetch(FetchDescriptor<Expense>(predicate: Expense.monthPredicate(month)))) ?? [])
+            .filter { $0.household == household }
+        let localIncomes = ((try? context.fetch(FetchDescriptor<IncomeEntry>(predicate: IncomeEntry.monthPredicate(month)))) ?? [])
+            .filter { $0.household == household }
 
-        for dto in response.transactions {
+        for (index, dto) in response.transactions.enumerated() {
+            // Cède le MainActor tous les 50 upserts → l'UI peut rendre / les continuations réseau
+            // en attente peuvent reprendre au lieu d'être bloquées par un gros batch d'un coup.
+            if index > 0 && index % 50 == 0 { await Task.yield() }
             guard let amount = Decimal(string: dto.amount), let date = parseDate(dto.date) else { continue }
             let accountingMonth = dto.accountingMonth.flatMap(parseMonth)
+
+            // Diff-guards : ne muter QUE si la valeur change. Sinon SwiftData marque la ligne dirty même
+            // pour une réécriture identique → au cold start (données déjà locales, serveur renvoie la même
+            // chose) tout le mois est sauvé → gros merge background→main → hang du thread principal.
+            let newEffective = Calendar.current.startOfMonth(for: accountingMonth ?? date)
 
             if dto.type == "expense" {
                 let expense = localExpenses.first(where: { $0.serverId == dto.id }) ?? {
@@ -351,17 +367,18 @@ enum SyncService {
                     context.insert(new)
                     return new
                 }()
-                expense.amount = amount
-                expense.label = dto.label
-                expense.spentAt = date
-                expense.accountingMonth = accountingMonth
-                expense.tags = dto.tags
-                expense.notes = dto.notes
-                expense.category = dto.category.flatMap { ref in categories.first { $0.serverId == ref.id } }
-                expense.subcategory = dto.subcategory.flatMap { ref in
-                    expense.category?.subcategories.first { $0.serverId == ref.id }
-                }
-                expense.syncStatus = .synced
+                let newCategory = dto.category.flatMap { ref in categories.first { $0.serverId == ref.id } }
+                let newSubcategory = dto.subcategory.flatMap { ref in newCategory?.subcategories.first { $0.serverId == ref.id } }
+                if expense.amount != amount { expense.amount = amount }
+                if expense.label != dto.label { expense.label = dto.label }
+                if expense.spentAt != date { expense.spentAt = date }
+                if expense.accountingMonth != accountingMonth { expense.accountingMonth = accountingMonth }
+                if expense.effectiveMonth != newEffective { expense.effectiveMonth = newEffective }
+                if expense.tags != dto.tags { expense.tags = dto.tags }
+                if expense.notes != dto.notes { expense.notes = dto.notes }
+                if expense.category != newCategory { expense.category = newCategory }
+                if expense.subcategory != newSubcategory { expense.subcategory = newSubcategory }
+                if expense.syncStatus != .synced { expense.syncStatus = .synced }
             } else if dto.type == "income" {
                 let income = localIncomes.first(where: { $0.serverId == dto.id }) ?? {
                     let new = IncomeEntry(amount: amount, label: dto.label)
@@ -370,13 +387,15 @@ enum SyncService {
                     context.insert(new)
                     return new
                 }()
-                income.amount = amount
-                income.label = dto.label
-                income.receivedAt = date
-                income.accountingMonth = accountingMonth
-                income.notes = dto.notes
-                income.incomeCategory = dto.incomeCategory.flatMap { ref in incomeCategories.first { $0.serverId == ref.id } }
-                income.syncStatus = .synced
+                let newIncomeCategory = dto.incomeCategory.flatMap { ref in incomeCategories.first { $0.serverId == ref.id } }
+                if income.amount != amount { income.amount = amount }
+                if income.label != dto.label { income.label = dto.label }
+                if income.receivedAt != date { income.receivedAt = date }
+                if income.accountingMonth != accountingMonth { income.accountingMonth = accountingMonth }
+                if income.effectiveMonth != newEffective { income.effectiveMonth = newEffective }
+                if income.notes != dto.notes { income.notes = dto.notes }
+                if income.incomeCategory != newIncomeCategory { income.incomeCategory = newIncomeCategory }
+                if income.syncStatus != .synced { income.syncStatus = .synced }
             }
         }
 
@@ -390,7 +409,7 @@ enum SyncService {
 
     // MARK: — Lignes budgétaires du mois
 
-    static func pullBudgetLines(household: Household, month: Date, context: ModelContext) async throws {
+    nonisolated static func pullBudgetLines(household: Household, month: Date, context: ModelContext) async throws {
         struct LinesResponse: Decodable {
             let success: Bool
             let expenseLines: [BudgetLineDTO]
@@ -423,15 +442,17 @@ enum SyncService {
                 context.insert(new)
                 return new
             }()
-            line.month = startMonth
-            line.endMonth = dto.endMonth.flatMap(parseMonth)
-            line.frequency = Frequency(rawValue: dto.frequency) ?? .monthly
-            line.amount = amount
-            line.category = dto.category.flatMap { ref in categories.first { $0.serverId == ref.id } }
-            line.subcategory = dto.subcategory.flatMap { ref in
-                line.category?.subcategories.first { $0.serverId == ref.id }
-            }
-            line.syncStatus = .synced
+            let newEndMonth = dto.endMonth.flatMap(parseMonth)
+            let newFrequency = Frequency(rawValue: dto.frequency) ?? .monthly
+            let newCategory = dto.category.flatMap { ref in categories.first { $0.serverId == ref.id } }
+            let newSubcategory = dto.subcategory.flatMap { ref in newCategory?.subcategories.first { $0.serverId == ref.id } }
+            if line.month != startMonth { line.month = startMonth }
+            if line.endMonth != newEndMonth { line.endMonth = newEndMonth }
+            if line.frequency != newFrequency { line.frequency = newFrequency }
+            if line.amount != amount { line.amount = amount }
+            if line.category != newCategory { line.category = newCategory }
+            if line.subcategory != newSubcategory { line.subcategory = newSubcategory }
+            if line.syncStatus != .synced { line.syncStatus = .synced }
         }
         for line in household.budgetExpenseLines
         where line.serverId != nil && line.isActive(for: month) && !serverExpenseLineIds.contains(line.serverId!) {
@@ -448,12 +469,15 @@ enum SyncService {
                 context.insert(new)
                 return new
             }()
-            line.month = startMonth
-            line.endMonth = dto.endMonth.flatMap(parseMonth)
-            line.frequency = Frequency(rawValue: dto.frequency) ?? .monthly
-            line.amount = amount
-            line.incomeCategory = dto.incomeCategory.flatMap { ref in incomeCategories.first { $0.serverId == ref.id } }
-            line.syncStatus = .synced
+            let newEndMonth = dto.endMonth.flatMap(parseMonth)
+            let newFrequency = Frequency(rawValue: dto.frequency) ?? .monthly
+            let newIncomeCategory = dto.incomeCategory.flatMap { ref in incomeCategories.first { $0.serverId == ref.id } }
+            if line.month != startMonth { line.month = startMonth }
+            if line.endMonth != newEndMonth { line.endMonth = newEndMonth }
+            if line.frequency != newFrequency { line.frequency = newFrequency }
+            if line.amount != amount { line.amount = amount }
+            if line.incomeCategory != newIncomeCategory { line.incomeCategory = newIncomeCategory }
+            if line.syncStatus != .synced { line.syncStatus = .synced }
         }
         for line in household.budgetIncomes
         where line.serverId != nil && line.isActive(for: month) && !serverIncomeLineIds.contains(line.serverId!) {
@@ -463,7 +487,7 @@ enum SyncService {
 
     // MARK: — Récurrents
 
-    static func pullRecurring(household: Household, context: ModelContext) async throws {
+    nonisolated static func pullRecurring(household: Household, context: ModelContext) async throws {
         struct RecurringResponse: Decodable {
             let success: Bool
             let recurring: [RecurringDTO]
@@ -504,16 +528,16 @@ enum SyncService {
 
     // MARK: — Helpers
 
-    private static func monthString(_ date: Date) -> String {
+    nonisolated private static func monthString(_ date: Date) -> String {
         let components = Calendar.current.dateComponents([.year, .month], from: date)
         return String(format: "%04d-%02d", components.year!, components.month!)
     }
 
-    private static func parseDate(_ raw: String) -> Date? {
+    nonisolated private static func parseDate(_ raw: String) -> Date? {
         MonthMath.parseDate(raw)
     }
 
-    private static func parseMonth(_ raw: String) -> Date? {
+    nonisolated private static func parseMonth(_ raw: String) -> Date? {
         guard let utc = MonthMath.parseMonth(raw) else { return nil }
         let comps = MonthMath.calendar.dateComponents([.year, .month], from: utc)
         var local = DateComponents()

@@ -13,79 +13,109 @@ enum TransactionFilter: String, CaseIterable {
     }
 }
 
+/// Couche de navigation : détient le mois sélectionné (`@State`) et déclenche la sync.
+/// Le `@Query` scopé au mois vit dans `TransactionsContent`, recréé à chaque changement de mois.
 struct TransactionsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AuthSession.self) private var session
+
+    @Binding var filter: TransactionFilter
+    @State private var month = Calendar.current.startOfMonth(for: .now)
+
+    var body: some View {
+        TransactionsContent(month: $month, filter: $filter)
+            .task(id: month) {
+                await MonthSyncService.refreshMonth(month, session: session, context: modelContext)
+            }
+            .refreshable {
+                await MonthSyncService.refreshMonth(month, session: session, context: modelContext, force: true)
+            }
+    }
+}
+
+/// Couche données : `@Query` filtré sur `effectiveMonth` du mois affiché → SQLite ne charge que ce mois.
+private struct TransactionsContent: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(AuthSession.self) private var session
+
+    @Binding var month: Date
+    @Binding var filter: TransactionFilter
 
     @Query private var households: [Household]
     @Query private var expenses: [Expense]
     @Query private var incomeEntries: [IncomeEntry]
     @Query(sort: \Category.sortOrder) private var categories: [Category]
 
-    @State private var month = Calendar.current.startOfMonth(for: .now)
-    @Binding var filter: TransactionFilter
     @State private var categoryFilter: Category?
     @State private var editTarget: TransactionItem?
+
+    init(month: Binding<Date>, filter: Binding<TransactionFilter>) {
+        _month = month
+        _filter = filter
+        _expenses = Query(filter: Expense.monthPredicate(month.wrappedValue))
+        _incomeEntries = Query(filter: IncomeEntry.monthPredicate(month.wrappedValue))
+    }
 
     private var household: Household? {
         households.first(where: \.isDefault) ?? households.first
     }
 
     // MARK: — Données filtrées
+    // `@Query` a déjà borné au mois ; le filtre Swift résiduel ne fait que foyer + catégorie + type.
 
-    private var monthItems: [TransactionItem] {
+    /// Résultat dérivé calculé EN UNE PASSE par render. Avant : `monthItems` + 2 totaux faisaient
+    /// chacun un `.filter { $0.household == ... }` → la relation `household` était faultée 3× par ligne
+    /// par render. Ici on filtre foyer une seule fois.
+    private struct MonthData {
+        var groups: [(day: Date, items: [TransactionItem])] = []
+        var expenseTotal: Decimal = 0
+        var incomeTotal: Decimal = 0
+    }
+
+    private var monthData: MonthData {
+        let exp = expenses.filter { $0.household == household }
+        let inc = incomeEntries.filter { $0.household == household }
+
         var items: [TransactionItem] = []
         if filter != .incomes {
-            items += expenses
-                .filter {
-                    $0.household == household && $0.effectiveMonth == month
-                        && (categoryFilter == nil || $0.category == categoryFilter)
-                }
+            items += exp
+                .filter { categoryFilter == nil || $0.category == categoryFilter }
                 .map { TransactionItem.expense($0) }
         }
         if filter != .expenses && categoryFilter == nil {
-            items += incomeEntries
-                .filter { $0.household == household && $0.effectiveMonth == month }
-                .map { TransactionItem.income($0) }
+            items += inc.map { TransactionItem.income($0) }
         }
-        return items.sorted { ($0.date, $0.createdAt) > ($1.date, $1.createdAt) }
-    }
+        items.sort { ($0.date, $0.createdAt) > ($1.date, $1.createdAt) }
 
-    private var dayGroups: [(day: Date, items: [TransactionItem])] {
         let calendar = Calendar.current
-        return Dictionary(grouping: monthItems) { calendar.startOfDay(for: $0.date) }
+        let groups = Dictionary(grouping: items) { calendar.startOfDay(for: $0.date) }
             .sorted { $0.key > $1.key }
             .map { (day: $0.key, items: $0.value) }
-    }
 
-    private var monthExpensesTotal: Decimal {
-        expenses
-            .filter { $0.household == household && $0.effectiveMonth == month && $0.status == .real }
-            .reduce(0) { $0 + $1.amount }
-    }
-
-    private var monthIncomeTotal: Decimal {
-        incomeEntries
-            .filter { $0.household == household && $0.effectiveMonth == month && $0.status == .real }
-            .reduce(0) { $0 + $1.amount }
+        return MonthData(
+            groups: groups,
+            expenseTotal: exp.filter { $0.status == .real }.reduce(0) { $0 + $1.amount },
+            incomeTotal: inc.filter { $0.status == .real }.reduce(0) { $0 + $1.amount }
+        )
     }
 
     // MARK: — Body
 
     var body: some View {
+        let data = monthData
         VStack(spacing: 0) {
             VStack(spacing: 14) {
-                monthSelector
+                monthSelector(expenseTotal: data.expenseTotal, incomeTotal: data.incomeTotal)
                 filterBar
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 10)
 
-            if dayGroups.isEmpty {
+            if data.groups.isEmpty {
                 emptyState
             } else {
-                transactionList
+                transactionList(groups: data.groups)
             }
         }
         .background(Color.budgetBg)
@@ -95,21 +125,18 @@ struct TransactionsView: View {
             case .income(let income):   IncomeFormView(income: income)
             }
         }
-        .task(id: month) {
-            await MonthSyncService.refreshMonth(month, session: session, context: modelContext)
-        }
     }
 
     // MARK: — Sélecteur de mois
 
-    private var monthSelector: some View {
+    private func monthSelector(expenseTotal: Decimal, incomeTotal: Decimal) -> some View {
         MonthSelector(month: $month) {
             HStack(spacing: 6) {
-                Text(AmountFormatter.kpi(-monthExpensesTotal))
+                Text(AmountFormatter.kpi(-expenseTotal))
                     .foregroundStyle(Color.budgetDanger)
                 Text("·")
                     .foregroundStyle(Color.budgetTextFaint)
-                Text(AmountFormatter.kpi(monthIncomeTotal, signed: true))
+                Text(AmountFormatter.kpi(incomeTotal, signed: true))
                     .foregroundStyle(Color.budgetPrimary)
             }
             .font(.caption.weight(.medium))
@@ -146,9 +173,9 @@ struct TransactionsView: View {
 
     // MARK: — Liste
 
-    private var transactionList: some View {
+    private func transactionList(groups: [(day: Date, items: [TransactionItem])]) -> some View {
         List {
-            ForEach(dayGroups, id: \.day) { group in
+            ForEach(groups, id: \.day) { group in
                 Section {
                     ForEach(group.items) { item in
                         TransactionRow(item: item)
