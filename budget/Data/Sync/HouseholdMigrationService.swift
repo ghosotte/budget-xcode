@@ -24,7 +24,6 @@ enum HouseholdMigrationService {
         let amount: String
         let label: String
         let date: String
-        let status: String
         let categoryId: Int?
         let subcategoryId: Int?
         let notes: String?
@@ -32,7 +31,7 @@ enum HouseholdMigrationService {
         let tags: [String]?
 
         enum CodingKeys: String, CodingKey {
-            case amount, label, date, status, notes, tags
+            case amount, label, date, notes, tags
             case localId = "local_id"
             case categoryId = "category_id"
             case subcategoryId = "subcategory_id"
@@ -45,13 +44,12 @@ enum HouseholdMigrationService {
         let amount: String
         let label: String
         let date: String
-        let status: String
         let incomeCategoryId: Int?
         let notes: String?
         let accountingMonth: String?
 
         enum CodingKeys: String, CodingKey {
-            case amount, label, date, status, notes
+            case amount, label, date, notes
             case localId = "local_id"
             case incomeCategoryId = "income_category_id"
             case accountingMonth = "accounting_month"
@@ -97,7 +95,6 @@ enum HouseholdMigrationService {
         let amount: String
         let label: String
         let dayOfMonth: Int
-        let autoConfirm: Bool
         let isActive: Bool
         let categoryId: Int?
         let subcategoryId: Int?
@@ -106,7 +103,6 @@ enum HouseholdMigrationService {
             case amount, label
             case localId = "local_id"
             case dayOfMonth = "day_of_month"
-            case autoConfirm = "auto_confirm"
             case isActive = "is_active"
             case categoryId = "category_id"
             case subcategoryId = "subcategory_id"
@@ -234,7 +230,6 @@ enum HouseholdMigrationService {
                 amount: NSDecimalNumber(decimal: e.amount).stringValue,
                 label: e.label,
                 date: dayString(e.spentAt),
-                status: e.status.rawValue,
                 categoryId: e.category?.serverId,
                 subcategoryId: e.subcategory?.serverId,
                 notes: e.notes,
@@ -248,7 +243,6 @@ enum HouseholdMigrationService {
                 amount: NSDecimalNumber(decimal: i.amount).stringValue,
                 label: i.label,
                 date: dayString(i.receivedAt),
-                status: i.status.rawValue,
                 incomeCategoryId: i.incomeCategory?.serverId,
                 notes: i.notes,
                 accountingMonth: i.accountingMonth.map(monthString)
@@ -283,7 +277,6 @@ enum HouseholdMigrationService {
                 amount: NSDecimalNumber(decimal: r.amount).stringValue,
                 label: r.label,
                 dayOfMonth: r.dayOfMonth,
-                autoConfirm: r.autoConfirm,
                 isActive: r.isActive,
                 categoryId: r.category?.serverId,
                 subcategoryId: r.subcategory?.serverId

@@ -348,6 +348,11 @@ struct LoginView: View {
         } catch {
             errorMessage = String(format: NSLocalizedString("Connecté, mais la synchronisation a échoué : %@", comment: ""), error.localizedDescription)
         }
+        // Foyer actif = local `isDefault` (peut différer du foyer cloud) → applique ses settings.
+        if let active = (try? modelContext.fetch(FetchDescriptor<Household>()))?.first(where: \.isDefault) {
+            Currency.setActive(active.currencyCode)
+            AppLocale.setActive(active.locale)
+        }
     }
 }
 

@@ -12,7 +12,6 @@ final class Expense {
     var label: String = ""
     var spentAt: Date = Date.distantPast
     var accountingMonth: Date?
-    var status: ExpenseStatus = ExpenseStatus.real
     var recurringTemplate: RecurringExpense?
     var tags: [String] = []
     var notes: String?
@@ -29,7 +28,6 @@ final class Expense {
         label: String,
         spentAt: Date = .now,
         accountingMonth: Date? = nil,
-        status: ExpenseStatus = .real,
         recurringTemplate: RecurringExpense? = nil,
         tags: [String] = [],
         notes: String? = nil,
@@ -45,7 +43,6 @@ final class Expense {
         self.label = label
         self.spentAt = spentAt
         self.accountingMonth = accountingMonth
-        self.status = status
         self.recurringTemplate = recurringTemplate
         self.tags = tags
         self.notes = notes
@@ -56,6 +53,10 @@ final class Expense {
 
     var effectiveMonth: Date {
         Calendar.current.startOfMonth(for: accountingMonth ?? spentAt)
+    }
+
+    var status: ExpenseStatus {
+        spentAt < TransactionStatus.cutoff() ? .real : .planned
     }
 }
 
@@ -69,7 +70,6 @@ final class IncomeEntry {
     var label: String = ""
     var receivedAt: Date = Date.distantPast
     var accountingMonth: Date?
-    var status: ExpenseStatus = ExpenseStatus.real
     var notes: String?
     var createdAt: Date = Date.distantPast
     var updatedAt: Date?
@@ -83,7 +83,6 @@ final class IncomeEntry {
         label: String,
         receivedAt: Date = .now,
         accountingMonth: Date? = nil,
-        status: ExpenseStatus = .real,
         notes: String? = nil,
         createdAt: Date = .now,
         updatedAt: Date? = nil,
@@ -96,7 +95,6 @@ final class IncomeEntry {
         self.label = label
         self.receivedAt = receivedAt
         self.accountingMonth = accountingMonth
-        self.status = status
         self.notes = notes
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -105,6 +103,18 @@ final class IncomeEntry {
 
     var effectiveMonth: Date {
         Calendar.current.startOfMonth(for: accountingMonth ?? receivedAt)
+    }
+
+    var status: ExpenseStatus {
+        receivedAt < TransactionStatus.cutoff() ? .real : .planned
+    }
+}
+
+enum TransactionStatus {
+    /// Start of tomorrow — boundary `date <= today → real`, `date > today → planned`.
+    static func cutoff(now: Date = .now) -> Date {
+        let cal = Calendar.current
+        return cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: now)) ?? now
     }
 }
 
@@ -119,7 +129,6 @@ final class RecurringExpense {
     var label: String = ""
     var dayOfMonth: Int = 1
     var isActive: Bool = true
-    var autoConfirm: Bool = false
     var createdAt: Date = Date.distantPast
     var syncStatus: SyncStatus = SyncStatus.local
 
@@ -132,7 +141,6 @@ final class RecurringExpense {
         label: String,
         dayOfMonth: Int,
         isActive: Bool = true,
-        autoConfirm: Bool = false,
         createdAt: Date = .now,
         syncStatus: SyncStatus = .local
     ) {
@@ -144,7 +152,6 @@ final class RecurringExpense {
         self.label = label
         self.dayOfMonth = min(max(dayOfMonth, 1), 28)
         self.isActive = isActive
-        self.autoConfirm = autoConfirm
         self.createdAt = createdAt
         self.syncStatus = syncStatus
     }

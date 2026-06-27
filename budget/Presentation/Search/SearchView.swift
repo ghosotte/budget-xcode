@@ -461,7 +461,6 @@ struct SearchView: View {
                 label: i.label,
                 receivedAt: i.receivedAt,
                 accountingMonth: i.accountingMonth,
-                status: i.status,
                 notes: i.notes
             )
             copy.household = i.household
@@ -476,7 +475,6 @@ struct SearchView: View {
                 label: e.label,
                 spentAt: e.spentAt,
                 accountingMonth: e.accountingMonth,
-                status: e.status,
                 tags: e.tags,
                 notes: e.notes
             )

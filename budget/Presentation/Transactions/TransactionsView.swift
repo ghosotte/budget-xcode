@@ -216,7 +216,6 @@ struct TransactionsView: View {
                 label: e.label,
                 spentAt: e.spentAt,
                 accountingMonth: e.accountingMonth,
-                status: e.status,
                 tags: e.tags,
                 notes: e.notes
             )
@@ -230,7 +229,6 @@ struct TransactionsView: View {
                 label: i.label,
                 receivedAt: i.receivedAt,
                 accountingMonth: i.accountingMonth,
-                status: i.status,
                 notes: i.notes
             )
             copy.household = i.household

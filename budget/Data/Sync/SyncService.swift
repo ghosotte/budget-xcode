@@ -46,7 +46,6 @@ enum SyncService {
         let label: String
         let date: String
         let accountingMonth: String?
-        let status: String
         let category: Ref?
         let subcategory: Ref?
         let incomeCategory: Ref?
@@ -54,7 +53,7 @@ enum SyncService {
         let notes: String?
 
         enum CodingKeys: String, CodingKey {
-            case id, type, amount, label, date, status, category, subcategory, tags, notes
+            case id, type, amount, label, date, category, subcategory, tags, notes
             case accountingMonth = "accounting_month"
             case incomeCategory = "income_category"
         }
@@ -95,7 +94,6 @@ enum SyncService {
         let label: String
         let dayOfMonth: Int
         let isActive: Bool
-        let autoConfirm: Bool
         let category: Ref?
         let subcategory: Ref?
 
@@ -103,7 +101,6 @@ enum SyncService {
             case id, amount, label, category, subcategory
             case dayOfMonth = "day_of_month"
             case isActive = "is_active"
-            case autoConfirm = "auto_confirm"
         }
     }
 
@@ -344,7 +341,6 @@ enum SyncService {
 
         for dto in response.transactions {
             guard let amount = Decimal(string: dto.amount), let date = parseDate(dto.date) else { continue }
-            let status = ExpenseStatus(rawValue: dto.status) ?? .real
             let accountingMonth = dto.accountingMonth.flatMap(parseMonth)
 
             if dto.type == "expense" {
@@ -359,7 +355,6 @@ enum SyncService {
                 expense.label = dto.label
                 expense.spentAt = date
                 expense.accountingMonth = accountingMonth
-                expense.status = status
                 expense.tags = dto.tags
                 expense.notes = dto.notes
                 expense.category = dto.category.flatMap { ref in categories.first { $0.serverId == ref.id } }
@@ -379,7 +374,6 @@ enum SyncService {
                 income.label = dto.label
                 income.receivedAt = date
                 income.accountingMonth = accountingMonth
-                income.status = status
                 income.notes = dto.notes
                 income.incomeCategory = dto.incomeCategory.flatMap { ref in incomeCategories.first { $0.serverId == ref.id } }
                 income.syncStatus = .synced
@@ -495,7 +489,6 @@ enum SyncService {
             template.label = dto.label
             template.dayOfMonth = dto.dayOfMonth
             template.isActive = dto.isActive
-            template.autoConfirm = dto.autoConfirm
             template.category = dto.category.flatMap { ref in categories.first { $0.serverId == ref.id } }
             template.subcategory = dto.subcategory.flatMap { ref in
                 template.category?.subcategories.first { $0.serverId == ref.id }

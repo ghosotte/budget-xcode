@@ -44,20 +44,11 @@ final class AuthSession {
 
     private(set) var user: AuthUser?
 
-    /// Garde-fou contre les effets de bord pendant la **construction**. `@State = AuthSession()`
-    /// réévalue `AuthSession()` à chaque reconstruction de `ContentView` (déclenchée notamment
-    /// par un changement de langue). Sans ce flag, le `didSet` ré-appliquerait le locale du foyer
-    /// cloud persisté et écraserait le choix de langue en cours. Passe à `true` une seule fois via
-    /// `bootstrap()` sur l'instance réelle.
-    private var hasBootstrapped = false
-
-    private(set) var currentHousehold: ServerHousehold? {
-        didSet {
-            guard hasBootstrapped else { return }
-            if let code = currentHousehold?.currency { Currency.setActive(code) }
-            if let loc = currentHousehold?.locale { AppLocale.setActive(loc) }
-        }
-    }
+    /// `currentHousehold` ne pilote pas Currency/AppLocale : le foyer **actif** est celui marqué
+    /// `isDefault` localement (peut différer du foyer cloud courant). Les sites qui changent
+    /// le foyer actif (cold start, switcher, post-login, édition foyer) appellent explicitement
+    /// `Currency.setActive` / `AppLocale.setActive`. Voir `active-foyer-locale-model` (memory).
+    private(set) var currentHousehold: ServerHousehold?
     private(set) var serverHouseholds: [ServerHousehold] = []
     var justRegistered: Bool = false
 
@@ -81,15 +72,9 @@ final class AuthSession {
         }
     }
 
-    /// Applique **une seule fois** (au démarrage réel de l'app) les réglages devise/langue du
-    /// foyer courant. À appeler depuis `ContentView.task`. Idempotent. Après ça, tout changement
-    /// de `currentHousehold` (switch de foyer) ré-applique via le `didSet`.
-    func bootstrap() {
-        guard !hasBootstrapped else { return }
-        hasBootstrapped = true
-        if let code = currentHousehold?.currency { Currency.setActive(code) }
-        if let loc = currentHousehold?.locale { AppLocale.setActive(loc) }
-    }
+    /// No-op kept for callers — Currency/AppLocale sont pilotés exclusivement par les sites
+    /// qui changent le foyer actif local (`isDefault`).
+    func bootstrap() {}
 
     private func migrateTokensIfNeeded() {
         // Fresh installation_id implies app was reinstalled (UserDefaults wiped).

@@ -8,7 +8,6 @@ struct RecurringFormView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AuthSession.self) private var session
 
-    @Query(sort: \Category.sortOrder) private var categories: [Category]
     @Query private var households: [Household]
 
     @State private var amountText: String
@@ -16,8 +15,8 @@ struct RecurringFormView: View {
     @State private var dayOfMonth: Int
     @State private var category: Category?
     @State private var subcategory: Subcategory?
-    @State private var autoConfirm: Bool
     @State private var showDeleteConfirm = false
+    @State private var showCategoryPicker = false
 
     init(template: RecurringExpense? = nil) {
         self.template = template
@@ -28,19 +27,36 @@ struct RecurringFormView: View {
         _dayOfMonth = State(initialValue: template?.dayOfMonth ?? 1)
         _category = State(initialValue: template?.category)
         _subcategory = State(initialValue: template?.subcategory)
-        _autoConfirm = State(initialValue: template?.autoConfirm ?? false)
     }
 
     private var parsedAmount: Decimal? {
         Decimal(string: amountText.replacingOccurrences(of: ",", with: "."), locale: Locale(identifier: "en_US"))
     }
 
-    private var isValid: Bool {
-        (parsedAmount ?? 0) > 0 && !label.trimmingCharacters(in: .whitespaces).isEmpty
+    private var household: Household? {
+        households.first(where: \.isDefault) ?? households.first
     }
 
-    private var sortedSubcategories: [Subcategory] {
-        category?.subcategories.sorted { $0.sortOrder < $1.sortOrder } ?? []
+    private var targetHousehold: Household? {
+        template?.household ?? household
+    }
+
+    private var canManageRecurring: Bool {
+        PushService.isRemoteHousehold(targetHousehold, session: session)
+    }
+
+    private var isValid: Bool {
+        canManageRecurring
+            && (parsedAmount ?? 0) > 0
+            && !label.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    private var categoryLabel: String {
+        guard let category else { return NSLocalizedString("Aucune", comment: "") }
+        if let subcategory {
+            return "\(category.emoji) \(category.displayName) › \(subcategory.displayName)"
+        }
+        return "\(category.emoji) \(category.displayName)"
     }
 
     var body: some View {
@@ -63,27 +79,21 @@ struct RecurringFormView: View {
                             Text("Le \(day)").tag(day)
                         }
                     }
-                    Picker("Catégorie", selection: $category) {
-                        Text("Aucune").tag(Category?.none)
-                        ForEach(categories) { cat in
-                            Text("\(cat.emoji) \(cat.displayName)").tag(Optional(cat))
+                    Button {
+                        showCategoryPicker = true
+                    } label: {
+                        HStack {
+                            Text("Catégorie")
+                                .foregroundStyle(Color.budgetText)
+                            Spacer()
+                            Text(categoryLabel)
+                                .foregroundStyle(category == nil ? Color.budgetTextMute : Color.budgetText)
+                                .multilineTextAlignment(.trailing)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.budgetTextFaint)
                         }
                     }
-                    if !sortedSubcategories.isEmpty {
-                        Picker("Sous-catégorie", selection: $subcategory) {
-                            Text("Aucune").tag(Subcategory?.none)
-                            ForEach(sortedSubcategories) { sub in
-                                Text(sub.displayName).tag(Optional(sub))
-                            }
-                        }
-                    }
-                }
-
-                Section {
-                    Toggle("Confirmation automatique", isOn: $autoConfirm)
-                        .tint(.budgetPrimary)
-                } footer: {
-                    Text("Activée : la dépense est créée comme réelle chaque mois. Désactivée : elle est créée comme prévue et tu la confirmes depuis l'accueil.")
                 }
 
                 if template != nil {
@@ -109,6 +119,9 @@ struct RecurringFormView: View {
                     subcategory = nil
                 }
             }
+            .sheet(isPresented: $showCategoryPicker) {
+                CategoryPickerView(category: $category, subcategory: $subcategory)
+            }
             .confirmationDialog(
                 "Supprimer ce récurrent ? Les dépenses déjà générées sont conservées.",
                 isPresented: $showDeleteConfirm,
@@ -121,6 +134,7 @@ struct RecurringFormView: View {
     }
 
     private func save() {
+        guard canManageRecurring else { return }
         guard let amount = parsedAmount, amount > 0 else { return }
         let trimmedLabel = label.trimmingCharacters(in: .whitespaces)
 
@@ -130,7 +144,6 @@ struct RecurringFormView: View {
             template.dayOfMonth = min(max(dayOfMonth, 1), 28)
             template.category = category
             template.subcategory = subcategory
-            template.autoConfirm = autoConfirm
             PushService.markForUpload(&template.syncStatus, household: template.household)
         } else {
             let new = RecurringExpense(
@@ -138,20 +151,19 @@ struct RecurringFormView: View {
                 subcategory: subcategory,
                 amount: amount,
                 label: trimmedLabel,
-                dayOfMonth: dayOfMonth,
-                autoConfirm: autoConfirm
+                dayOfMonth: dayOfMonth
             )
-            new.household = households.first(where: \.isDefault) ?? households.first
+            new.household = household
             PushService.markForUpload(&new.syncStatus, household: new.household)
             modelContext.insert(new)
         }
         try? modelContext.save()
-        RecurringService.generateExpenses(context: modelContext)
         PushService.afterLocalChange(session: session, context: modelContext)
         dismiss()
     }
 
     private func deleteTemplate() {
+        guard canManageRecurring else { return }
         guard let template else { return }
         PushService.deleteRecurring(template, session: session, context: modelContext)
         dismiss()

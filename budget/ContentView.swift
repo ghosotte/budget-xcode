@@ -47,6 +47,14 @@ struct ContentView: View {
     @State private var selectedTab = AppTab.home
     @State private var formKind: TransactionFormKind?
     @State private var transactionsFilter = TransactionFilter.all
+    @State private var inviteAlert: InviteAlert?
+
+    /// Résultat (succès / erreur) de l'acceptation d'une invitation reçue via Universal Link.
+    struct InviteAlert: Identifiable {
+        let id = UUID()
+        let title: LocalizedStringKey
+        let message: String
+    }
 
     /// Type par défaut à l'ouverture du FAB : revenu si l'onglet Transactions est
     /// filtré sur les revenus, sinon dépense.
@@ -109,7 +117,20 @@ struct ContentView: View {
         }
         .environment(authSession)
         .onOpenURL { url in
-            GIDSignIn.sharedInstance.handle(url)
+            // Universal Link d'invitation : https://budget.theapp.fr/invite/{token}.
+            // Tout le reste (callback Google Sign-In, schéma custom) repart vers GoogleSignIn.
+            if let token = inviteToken(from: url) {
+                handleInvite(token: token)
+            } else {
+                GIDSignIn.sharedInstance.handle(url)
+            }
+        }
+        .alert(item: $inviteAlert) { alert in
+            Alert(
+                title: Text(alert.title),
+                message: Text(alert.message),
+                dismissButton: .default(Text("OK"))
+            )
         }
         .task {
             MetricsCollector.shared.subscribe()
@@ -118,7 +139,7 @@ struct ContentView: View {
             // de ContentView → écrasait le changement de langue).
             authSession.bootstrap()
             SeedService.seedIfNeeded(context: modelContext)
-            RecurringService.generateExpenses(context: modelContext)
+            RecurringCleanupService.purgeOrphanedLocalInstances(context: modelContext)
             // Le foyer ACTIF (local `isDefault`, persistant) pilote devise + langue, qu'on soit
             // hors ligne OU connecté : `bootstrap()` a posé celles du foyer cloud courant, mais le
             // foyer actif peut être un foyer local (anonyme) distinct. On applique donc toujours
@@ -162,6 +183,40 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: APIClient.sessionInvalidatedNotification)) { _ in
             Task {
                 await authSession.logout(context: modelContext)
+            }
+        }
+    }
+
+    /// Extrait le token d'une URL d'invitation `…/invite/{token}`, sinon `nil`.
+    private func inviteToken(from url: URL) -> String? {
+        let parts = url.pathComponents.filter { $0 != "/" }
+        guard parts.count == 2, parts[0] == "invite", !parts[1].isEmpty else { return nil }
+        return parts[1]
+    }
+
+    /// Accepte l'invitation : l'attestation App Attest suffit (pas besoin d'être déjà connecté),
+    /// le serveur renvoie les tokens et bascule sur le foyer partagé. Resynchronise ensuite.
+    private func handleInvite(token: String) {
+        Task {
+            do {
+                let household = try await authSession.acceptInvitation(token: token)
+                try await SyncService.syncAll(session: authSession, context: modelContext)
+                try await SyncService.pullCategories(context: modelContext)
+                try modelContext.save()
+                inviteAlert = InviteAlert(
+                    title: "Invitation acceptée",
+                    message: String(
+                        format: NSLocalizedString("Vous avez rejoint le foyer « %@ ».", comment: ""),
+                        household.name
+                    )
+                )
+            } catch {
+                SyncErrorReporter.report(error, context: "ContentView.handleInvite")
+                inviteAlert = InviteAlert(
+                    title: "Invitation refusée",
+                    message: (error as? APIError)?.localizedDescription
+                        ?? NSLocalizedString("Le lien d'invitation est invalide ou expiré.", comment: "")
+                )
             }
         }
     }

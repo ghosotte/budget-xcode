@@ -30,6 +30,10 @@ struct RecurringListContent: View {
         households.first(where: \.isDefault) ?? households.first
     }
 
+    private var canManageRecurring: Bool {
+        PushService.isRemoteHousehold(household, session: session)
+    }
+
     private var activeTemplates: [RecurringExpense] {
         templates.filter { $0.household == household && $0.isActive }
     }
@@ -40,7 +44,11 @@ struct RecurringListContent: View {
 
     var body: some View {
         Group {
-            if activeTemplates.isEmpty && inactiveTemplates.isEmpty {
+            if !session.isAuthenticated {
+                loginRequiredState
+            } else if !canManageRecurring {
+                cloudHouseholdRequiredState
+            } else if activeTemplates.isEmpty && inactiveTemplates.isEmpty {
                 emptyState
             } else {
                 List {
@@ -67,18 +75,57 @@ struct RecurringListContent: View {
         .navigationTitle("Dépenses récurrentes")
         .navigationBarTitleDisplayMode(.inline)
         .task {
+            guard canManageRecurring else { return }
             await MonthSyncService.refreshRecurring(session: session, context: modelContext)
         }
         .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button { formTarget = .new } label: {
-                    Image(systemName: "plus")
+            if canManageRecurring {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { formTarget = .new } label: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
         }
         .sheet(item: $formTarget) { target in
             RecurringFormView(template: target.template)
         }
+    }
+
+    private var loginRequiredState: some View {
+        VStack(spacing: 16) {
+            Text("🔁")
+                .font(.system(size: 40))
+            Text("Automatisez vos dépenses régulières — loyer, abonnements, factures. Connectez-vous pour ne plus jamais les oublier.")
+                .font(.subheadline)
+                .foregroundStyle(Color.budgetTextMute)
+                .multilineTextAlignment(.center)
+            NavigationLink {
+                LoginView()
+            } label: {
+                Text("Se connecter")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 11)
+                    .background(Capsule().fill(Color.budgetPrimary))
+            }
+        }
+        .padding(40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var cloudHouseholdRequiredState: some View {
+        VStack(spacing: 16) {
+            Text("🔁")
+                .font(.system(size: 40))
+            Text("Les dépenses récurrentes sont créées par le serveur. Sélectionnez un foyer cloud pour en ajouter.")
+                .font(.subheadline)
+                .foregroundStyle(Color.budgetTextMute)
+                .multilineTextAlignment(.center)
+        }
+        .padding(40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func row(_ template: RecurringExpense) -> some View {
@@ -94,7 +141,7 @@ struct RecurringListContent: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.budgetText)
                         .lineLimit(1)
-                    Text("Le \(template.dayOfMonth) du mois\(template.autoConfirm ? " · auto" : "")")
+                    Text("Le \(template.dayOfMonth) du mois")
                         .font(.caption)
                         .foregroundStyle(Color.budgetTextMute)
                 }

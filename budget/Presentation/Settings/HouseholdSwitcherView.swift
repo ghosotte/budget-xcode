@@ -122,5 +122,7 @@ struct HouseholdSwitcherView: View {
             h.isDefault = (h == household)
         }
         try? modelContext.save()
+        Currency.setActive(household.currencyCode)
+        AppLocale.setActive(household.locale)
     }
 }

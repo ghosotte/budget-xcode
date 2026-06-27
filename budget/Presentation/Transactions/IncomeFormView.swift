@@ -16,7 +16,6 @@ struct IncomeFormView: View {
     @State private var label: String
     @State private var date: Date
     @State private var incomeCategory: IncomeCategory?
-    @State private var status: ExpenseStatus
     @State private var notes: String
     @State private var showCategoryPicker = false
 
@@ -29,7 +28,6 @@ struct IncomeFormView: View {
         _label = State(initialValue: income?.label ?? "")
         _date = State(initialValue: income?.receivedAt ?? .now)
         _incomeCategory = State(initialValue: income?.incomeCategory)
-        _status = State(initialValue: income?.status ?? .real)
         _notes = State(initialValue: income?.notes ?? "")
     }
 
@@ -77,12 +75,6 @@ struct IncomeFormView: View {
                                 .foregroundStyle(Color.budgetTextFaint)
                         }
                     }
-                    Picker("Statut", selection: $status) {
-                        ForEach(ExpenseStatus.allCases, id: \.self) { s in
-                            Text(s.label).tag(s)
-                        }
-                    }
-                    .pickerStyle(.segmented)
                 }
 
                 Section("Notes") {
@@ -128,7 +120,6 @@ struct IncomeFormView: View {
             income.amount = amount
             income.label = finalLabel
             income.receivedAt = date
-            income.status = status
             income.notes = finalNotes
             income.updatedAt = .now
             PushService.markForUpload(&income.syncStatus, household: income.household)
@@ -138,7 +129,6 @@ struct IncomeFormView: View {
                 amount: amount,
                 label: finalLabel,
                 receivedAt: date,
-                status: status,
                 notes: finalNotes
             )
             new.household = households.first(where: \.isDefault) ?? households.first

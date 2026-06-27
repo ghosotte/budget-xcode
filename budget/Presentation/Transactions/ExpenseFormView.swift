@@ -17,7 +17,6 @@ struct ExpenseFormView: View {
     @State private var date: Date
     @State private var category: Category?
     @State private var subcategory: Subcategory?
-    @State private var status: ExpenseStatus
     @State private var notes: String
     @State private var tagsText: String
     @State private var showCategoryPicker = false
@@ -32,7 +31,6 @@ struct ExpenseFormView: View {
         _date = State(initialValue: expense?.spentAt ?? .now)
         _category = State(initialValue: expense?.category)
         _subcategory = State(initialValue: expense?.subcategory)
-        _status = State(initialValue: expense?.status ?? .real)
         _notes = State(initialValue: expense?.notes ?? "")
         _tagsText = State(initialValue: expense?.tags.joined(separator: ", ") ?? "")
     }
@@ -84,12 +82,6 @@ struct ExpenseFormView: View {
                                 .foregroundStyle(Color.budgetTextFaint)
                         }
                     }
-                    Picker("Statut", selection: $status) {
-                        ForEach(ExpenseStatus.allCases, id: \.self) { s in
-                            Text(s.label).tag(s)
-                        }
-                    }
-                    .pickerStyle(.segmented)
                 }
 
                 Section("Notes & tags") {
@@ -146,7 +138,6 @@ struct ExpenseFormView: View {
             expense.amount = amount
             expense.label = finalLabel
             expense.spentAt = date
-            expense.status = status
             expense.tags = tags
             expense.notes = finalNotes
             expense.updatedAt = .now
@@ -158,7 +149,6 @@ struct ExpenseFormView: View {
                 amount: amount,
                 label: finalLabel,
                 spentAt: date,
-                status: status,
                 tags: tags,
                 notes: finalNotes
             )

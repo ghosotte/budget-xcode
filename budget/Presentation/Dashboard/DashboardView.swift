@@ -96,18 +96,24 @@ struct DashboardView: View {
     }
 
     private var latestExpenses: [Expense] {
-        Array(
-            expenses
-                .filter { $0.household == household }
+        let cutoff = TransactionStatus.cutoff()
+        return Array(
+            monthExpenses
+                .filter { $0.spentAt < cutoff }
                 .sorted { ($0.spentAt, $0.createdAt) > ($1.spentAt, $1.createdAt) }
                 .prefix(5)
         )
     }
 
-    private var upcomingRecurring: [Expense] {
-        monthExpenses
-            .filter { $0.status == .planned && $0.recurringTemplate != nil }
-            .sorted { $0.spentAt < $1.spentAt }
+    private var upcomingItems: [UpcomingItem] {
+        let cutoff = TransactionStatus.cutoff()
+        let exps = monthExpenses
+            .filter { $0.spentAt >= cutoff }
+            .map(UpcomingItem.expense)
+        let incs = monthIncomes
+            .filter { $0.receivedAt >= cutoff }
+            .map(UpcomingItem.income)
+        return (exps + incs).sorted { $0.date < $1.date }
     }
 
     // MARK: — Body
@@ -144,12 +150,12 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: — Prochains récurrents
+    // MARK: — À venir
 
     private var recurringSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("PROCHAINS RÉCURRENTS")
+                Text("À VENIR")
                     .font(.caption2.weight(.semibold))
                     .tracking(1.2)
                     .foregroundStyle(Color.budgetTextMute)
@@ -165,46 +171,17 @@ struct DashboardView: View {
                 }
             }
 
-            if upcomingRecurring.isEmpty {
-                Text("Aucune dépense récurrente en attente.")
+            let items = upcomingItems
+            if items.isEmpty {
+                Text("Aucune transaction à venir.")
                     .font(.caption)
                     .foregroundStyle(Color.budgetTextMute)
                     .padding(.vertical, 4)
             } else {
                 VStack(spacing: 0) {
-                    ForEach(upcomingRecurring) { expense in
-                        HStack(spacing: 12) {
-                            Text(expense.category?.emoji ?? "🔁")
-                                .font(.system(size: 16))
-                                .frame(width: 34, height: 34)
-                                .background(RoundedRectangle(cornerRadius: 9).fill(Color.budgetSurfaceMute))
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(expense.label)
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(Color.budgetText)
-                                    .lineLimit(1)
-                                Text("Le \(AppDateFormatter.dayMonth(expense.spentAt)) · \(AmountFormatter.full(expense.amount))")
-                                    .font(.caption)
-                                    .foregroundStyle(Color.budgetTextMute)
-                            }
-                            Spacer()
-                            Button {
-                                expense.status = .real
-                                expense.updatedAt = .now
-                                PushService.markForUpload(&expense.syncStatus, household: expense.household)
-                                try? modelContext.save()
-                                PushService.afterLocalChange(session: session, context: modelContext)
-                            } label: {
-                                Text("Confirmer")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(Color.budgetPrimary)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 6)
-                                    .background(Capsule().fill(Color.budgetPrimarySoft))
-                            }
-                        }
-                        .padding(.vertical, 8)
-                        if expense != upcomingRecurring.last {
+                    ForEach(items) { item in
+                        UpcomingRow(item: item)
+                        if item.id != items.last?.id {
                             Divider().overlay(Color.budgetBorder.opacity(0.6))
                         }
                     }
@@ -439,6 +416,81 @@ struct DashboardView: View {
         RoundedRectangle(cornerRadius: 16)
             .fill(Color.budgetSurface)
             .stroke(Color.budgetBorder, lineWidth: 1)
+    }
+}
+
+// MARK: — Item « À venir »
+
+enum UpcomingItem: Identifiable {
+    case expense(Expense)
+    case income(IncomeEntry)
+
+    var id: String {
+        switch self {
+        case .expense(let e): return "e-\(e.id.uuidString)"
+        case .income(let i): return "i-\(i.id.uuidString)"
+        }
+    }
+
+    var date: Date {
+        switch self {
+        case .expense(let e): return e.spentAt
+        case .income(let i): return i.receivedAt
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .expense(let e): return e.label
+        case .income(let i): return i.label
+        }
+    }
+
+    var amount: Decimal {
+        switch self {
+        case .expense(let e): return e.amount
+        case .income(let i): return i.amount
+        }
+    }
+
+    var emoji: String {
+        switch self {
+        case .expense(let e):
+            if let sub = e.subcategory, !sub.emoji.isEmpty { return sub.emoji }
+            return e.category?.emoji ?? "📦"
+        case .income(let i):
+            let icon = i.incomeCategory?.emoji ?? ""
+            return icon.isEmpty ? "💰" : icon
+        }
+    }
+
+    var isIncome: Bool {
+        if case .income = self { return true }
+        return false
+    }
+}
+
+private struct UpcomingRow: View {
+    let item: UpcomingItem
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(item.emoji)
+                .font(.system(size: 16))
+                .frame(width: 34, height: 34)
+                .background(RoundedRectangle(cornerRadius: 9).fill(Color.budgetSurfaceMute))
+            VStack(alignment: .leading, spacing: 1) {
+                Text(item.label)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.budgetText)
+                    .lineLimit(1)
+                Text("\(AppDateFormatter.dayMonth(item.date)) · \(AmountFormatter.full(item.amount))")
+                    .font(.caption)
+                    .foregroundStyle(item.isIncome ? Color.budgetAccent : Color.budgetTextMute)
+            }
+            Spacer()
+        }
+        .padding(.vertical, 8)
     }
 }
 

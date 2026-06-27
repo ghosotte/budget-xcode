@@ -271,7 +271,6 @@ enum PushService {
                 "amount": NSDecimalNumber(decimal: expense.amount).stringValue,
                 "label": expense.label,
                 "date": dayString(expense.spentAt),
-                "status": expense.status.rawValue,
                 "category_id": expense.category?.serverId.map(String.init),
                 "subcategory_id": expense.subcategory?.serverId.map(String.init),
                 "notes": expense.notes,
@@ -302,7 +301,6 @@ enum PushService {
                 "amount": NSDecimalNumber(decimal: income.amount).stringValue,
                 "label": income.label,
                 "date": dayString(income.receivedAt),
-                "status": income.status.rawValue,
                 "income_category_id": income.incomeCategory?.serverId.map(String.init),
                 "notes": income.notes,
                 "accounting_month": income.accountingMonth.map(monthString),
@@ -346,7 +344,6 @@ enum PushService {
                 "amount": NSDecimalNumber(decimal: template.amount).stringValue,
                 "label": template.label,
                 "day_of_month": String(template.dayOfMonth),
-                "auto_confirm": template.autoConfirm ? "1" : "0",
                 "category_id": template.category?.serverId.map(String.init),
                 "subcategory_id": template.subcategory?.serverId.map(String.init),
             ]
@@ -463,13 +460,17 @@ enum PushService {
 
     // MARK: Lignes budgétaires — remote-first (deprecated, kept for backwards compat)
 
-    static func isRemoteBudget(_ household: Household?, session: AuthSession) -> Bool {
+    static func isRemoteHousehold(_ household: Household?, session: AuthSession) -> Bool {
         session.isAuthenticated
             && household?.serverId != nil
             && household?.serverId == session.currentHousehold?.id
             && household?.ownerUserId != nil
             && household?.ownerUserId == session.user?.id
             && household?.isOrphan == false
+    }
+
+    static func isRemoteBudget(_ household: Household?, session: AuthSession) -> Bool {
+        isRemoteHousehold(household, session: session)
     }
 
     static func createExpenseLineRemote(

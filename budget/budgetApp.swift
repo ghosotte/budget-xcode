@@ -25,6 +25,15 @@ struct budgetApp: App {
 
     @State private var language = LanguageStore()
 
+    init() {
+        // Au lancement, scenePhase passe → .active et déclenche `onChange` dans ContentView
+        // (quickSync → refreshMe). Le cold-start `.task` lance déjà syncAll (refreshMe aussi) :
+        // sans garde, les deux couraient en parallèle → double GET /auth/me concurrent au démarrage.
+        // On stampe `lastSyncAt` à l'instant du lancement pour que la garde 60s du scenePhase
+        // supprime ce quickSync redondant. Les vrais retours de background (>60s) restent couverts.
+        UserDefaults.standard.set(Date.now.timeIntervalSince1970, forKey: "lastSyncAt")
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
