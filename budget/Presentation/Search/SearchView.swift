@@ -26,6 +26,7 @@ struct SearchView: View {
     @State private var isLoading = false
     @State private var isLoadingMore = false
     @State private var loadError: String?
+    @State private var actionError: String?
     @State private var didSearch = false
 
     @State private var editTarget: TransactionItem?
@@ -107,6 +108,14 @@ struct SearchView: View {
             case .expense(let expense): ExpenseFormView(expense: expense)
             case .income(let income):   IncomeFormView(income: income)
             }
+        }
+        .alert(
+            NSLocalizedString("Action indisponible", comment: ""),
+            isPresented: Binding(get: { actionError != nil }, set: { if !$0 { actionError = nil } })
+        ) {
+            Button("OK", role: .cancel) { actionError = nil }
+        } message: {
+            Text(actionError ?? "")
         }
         .onAppear { searchFocused = true }
     }
@@ -432,20 +441,29 @@ struct SearchView: View {
         return try? modelContext.fetch(fd).first
     }
 
+    /// Message quand la transaction n'est pas matérialisée en local (mois non synchronisé) → on ne
+    /// peut pas l'éditer/supprimer/dupliquer. Affiché à l'utilisateur au lieu d'un no-op silencieux.
+    private static let unavailableLocally = NSLocalizedString(
+        "Cette transaction n'est pas encore disponible localement. Ouvre son mois pour la synchroniser, puis réessaie.",
+        comment: ""
+    )
+
     private func resolveAndEdit(_ item: SearchService.Item) {
         if item.isIncome {
             if let income = localIncome(item.serverId) { editTarget = .income(income) }
+            else { actionError = Self.unavailableLocally }
         } else {
             if let expense = localExpense(item.serverId) { editTarget = .expense(expense) }
+            else { actionError = Self.unavailableLocally }
         }
     }
 
     private func delete(_ item: SearchService.Item) {
         if item.isIncome {
-            guard let income = localIncome(item.serverId) else { return }
+            guard let income = localIncome(item.serverId) else { actionError = Self.unavailableLocally; return }
             PushService.deleteIncome(income, session: session, context: modelContext)
         } else {
-            guard let expense = localExpense(item.serverId) else { return }
+            guard let expense = localExpense(item.serverId) else { actionError = Self.unavailableLocally; return }
             PushService.deleteExpense(expense, session: session, context: modelContext)
         }
         items.removeAll { $0.id == item.id }
@@ -454,7 +472,7 @@ struct SearchView: View {
 
     private func duplicate(_ item: SearchService.Item) {
         if item.isIncome {
-            guard let i = localIncome(item.serverId) else { return }
+            guard let i = localIncome(item.serverId) else { actionError = Self.unavailableLocally; return }
             let copy = IncomeEntry(
                 incomeCategory: i.incomeCategory,
                 amount: i.amount,
@@ -467,7 +485,7 @@ struct SearchView: View {
             PushService.markForUpload(&copy.syncStatus, household: copy.household)
             modelContext.insert(copy)
         } else {
-            guard let e = localExpense(item.serverId) else { return }
+            guard let e = localExpense(item.serverId) else { actionError = Self.unavailableLocally; return }
             let copy = Expense(
                 category: e.category,
                 subcategory: e.subcategory,

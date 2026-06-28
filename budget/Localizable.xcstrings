@@ -230,6 +230,9 @@
         }
       }
     },
+    "Action indisponible" : {
+
+    },
     "Ajouter la dépense" : {
       "localizations" : {
         "en" : {
@@ -619,6 +622,9 @@
           }
         }
       }
+    },
+    "Cette transaction n'est pas encore disponible localement. Ouvre son mois pour la synchroniser, puis réessaie." : {
+
     },
     "Challenge refusé par le serveur." : {
       "localizations" : {

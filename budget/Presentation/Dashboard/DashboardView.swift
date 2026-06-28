@@ -39,11 +39,11 @@ struct DashboardView: View {
     // MARK: — Aggregates (mois courant, foyer actif)
 
     private var monthExpenses: [Expense] {
-        expenses.filter { $0.household == household && $0.effectiveMonth == currentMonth }
+        expenses.filter { $0.household == household }
     }
 
     private var monthIncomes: [IncomeEntry] {
-        incomeEntries.filter { $0.household == household && $0.effectiveMonth == currentMonth }
+        incomeEntries.filter { $0.household == household }
     }
 
     private var realExpensesTotal: Decimal {

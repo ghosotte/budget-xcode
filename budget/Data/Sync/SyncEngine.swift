@@ -47,6 +47,22 @@ actor SyncEngine {
         try await SyncService.pullCategories(context: modelContext)
         if modelContext.hasChanges { try modelContext.save() }
     }
+
+    /// Backfill unique de `effectiveMonth` (lignes au sentinel `.distantPast`) sur le contexte
+    /// background : fetch CIBLÉ par prédicat (pas toute la table) + hors MainActor → pas de hang au
+    /// premier lancement post-mise à jour. Prédicat sur `Date` (pas un enum) → fiable.
+    func backfillEffectiveMonth() async throws {
+        let sentinel = Date.distantPast
+        let expenses = (try? modelContext.fetch(
+            FetchDescriptor<Expense>(predicate: #Predicate { $0.effectiveMonth == sentinel })
+        )) ?? []
+        for expense in expenses { expense.refreshEffectiveMonth() }
+        let incomes = (try? modelContext.fetch(
+            FetchDescriptor<IncomeEntry>(predicate: #Predicate { $0.effectiveMonth == sentinel })
+        )) ?? []
+        for income in incomes { income.refreshEffectiveMonth() }
+        if modelContext.hasChanges { try modelContext.save() }
+    }
 }
 
 /// Accès partagé à un `SyncEngine` unique (un seul contexte background réutilisé).

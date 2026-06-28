@@ -33,6 +33,8 @@ enum ExpenseStatus: String, Codable, CaseIterable {
 
 extension Calendar {
     func startOfMonth(for date: Date) -> Date {
-        self.date(from: dateComponents([.year, .month], from: date))!
+        // Repli sûr : `date(from:)` peut renvoyer nil (dates extrêmes, payload serveur malformé).
+        // Un crash ici serait atteignable depuis la sync → on retombe sur le début du jour.
+        self.date(from: dateComponents([.year, .month], from: date)) ?? startOfDay(for: date)
     }
 }

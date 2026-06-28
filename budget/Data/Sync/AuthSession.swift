@@ -52,6 +52,10 @@ final class AuthSession {
     private(set) var serverHouseholds: [ServerHousehold] = []
     var justRegistered: Bool = false
 
+    /// Vrai pendant la purge de déconnexion → ContentView retire les onglets (et leurs `@Query`) le
+    /// temps de supprimer les données, pour qu'aucune vue n'observe des objets en cours de suppression.
+    private(set) var isPurging = false
+
     var isAuthenticated: Bool { user != nil && APIClient.shared.hasTokens }
 
     private static let tokenSchemaKey = "auth.tokenSchema"
@@ -189,43 +193,52 @@ final class AuthSession {
         SyncEngineProvider.reset()
         MonthSyncService.invalidate()
 
+        // Crash SwiftData ("backing data detached") au logout : les vues data (BudgetView lit
+        // `line.frequency`) observent encore les `@Query` quand les lignes sont supprimées. On retire donc
+        // d'abord les onglets de la hiérarchie (`isPurging` → ContentView), on attend un tour de runloop
+        // que SwiftUI les démonte (libère les `@Query`), PUIS on purge en un seul save atomique.
+        isPurging = true
+        // Laisse SwiftUI committer le retrait des onglets (≈ un frame) avant de supprimer : un simple
+        // `Task.yield()` peut reprendre avant le commit du rendu, d'où un court sleep déterministe.
+        try? await Task.sleep(for: .milliseconds(50))
+
+        // Bascule `isDefault` sur un foyer survivant AVANT la purge → l'app rouvre sur des données valides.
+        establishSafeDefault(excludingOwner: previousUserId, context: context)
         if let userId = previousUserId {
             purgeOwnedHouseholds(userId: userId, context: context)
         }
-        ensureAnonymousHousehold(context: context)
+        context.safeSave("AuthSession.logout")
+
+        isPurging = false
+    }
+
+    /// Choisit (ou crée) un foyer qui survivra à la purge et le marque `isDefault`, AVANT toute
+    /// suppression — pour que les vues pointent sur des données valides quand le save survient.
+    private func establishSafeDefault(excludingOwner ownerToPurge: Int?, context: ModelContext) {
+        let households = (try? context.fetch(FetchDescriptor<Household>())) ?? []
+        let survivors = households.filter { $0.ownerUserId != ownerToPurge }
+        for h in households { h.isDefault = false }
+        if let survivor = survivors.first(where: \.isAnonymous) ?? survivors.first {
+            survivor.isDefault = true
+        } else {
+            let household = Household(isAnonymous: true, name: SeedService.defaultHouseholdName, isDefault: true)
+            household.members.append(HouseholdMember(displayName: "Moi", isMe: true))
+            context.insert(household)
+        }
     }
 
     private func purgeOwnedHouseholds(userId: Int, context: ModelContext) {
         let households = (try? context.fetch(FetchDescriptor<Household>())) ?? []
         for household in households where household.ownerUserId == userId {
-            // Delete children explicitly before parent so @Query observers update incrementally
-            // and don't try to read attributes on detached cascade-deleted entities.
+            // Pas de save intermédiaire : tout est supprimé puis sauvé une fois par l'appelant (logout).
             for e in household.expenses { context.delete(e) }
             for i in household.incomeEntries { context.delete(i) }
             for l in household.budgetExpenseLines { context.delete(l) }
             for l in household.budgetIncomes { context.delete(l) }
             for r in household.recurringExpenses { context.delete(r) }
             for m in household.members { context.delete(m) }
-            context.safeSave("AuthSession")
             context.delete(household)
-            context.safeSave("AuthSession")
         }
-    }
-
-    private func ensureAnonymousHousehold(context: ModelContext) {
-        let households = (try? context.fetch(FetchDescriptor<Household>())) ?? []
-        if households.contains(where: \.isDefault) {
-            return
-        }
-        if let first = households.first {
-            first.isDefault = true
-            context.safeSave("AuthSession")
-            return
-        }
-        let household = Household(isAnonymous: true, name: SeedService.defaultHouseholdName, isDefault: true)
-        household.members.append(HouseholdMember(displayName: "Moi", isMe: true))
-        context.insert(household)
-        try? context.save()
     }
 
     func appendServerHousehold(_ household: ServerHousehold) {
@@ -445,7 +458,7 @@ final class AuthSession {
         if !serverHouseholds.contains(where: { $0.id == household.id }) {
             serverHouseholds.append(household)
         }
-        SyncEngineProvider.reset()
+        // Switch de foyer (pas de purge de lignes) → invalider les throttles seulement, garder l'engine chaud.
         MonthSyncService.invalidate()
         return household
     }
@@ -481,8 +494,9 @@ final class AuthSession {
         APIClient.shared.storeTokens(access: access, refresh: refresh)
         currentHousehold = household
         UserDefaults.standard.set(try? JSONEncoder().encode(household), forKey: Self.householdKey)
-        // Foyer actif changé → jeter le contexte background en cache + les throttles du mois.
-        SyncEngineProvider.reset()
+        // Foyer actif changé → re-pull le mois (throttles vidés). On NE reset PAS l'engine : un switch
+        // ne supprime aucune ligne, donc le contexte background reste valide. Le jeter le rendrait froid
+        // → 1er pull de chaque onglet re-faulte toutes les relations + gros merge = hang ~1s par onglet.
         MonthSyncService.invalidate()
         return household
     }

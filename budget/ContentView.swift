@@ -112,7 +112,14 @@ struct ContentView: View {
         // ré-résolution des chaînes via le bundle surchargé. La sélection d'onglet est
         // préservée (binding sur `$selectedTab`, état hors du sous-arbre reconstruit).
         ZStack {
-            tabs
+            // Pendant la purge de déconnexion, on retire les onglets (et donc tous leurs `@Query`) de
+            // la hiérarchie : sinon une vue encore vivante (ex. BudgetView lisant `line.frequency`)
+            // observe les lignes en cours de suppression → SwiftData crash "backing data detached".
+            if authSession.isPurging {
+                Color.budgetBg.ignoresSafeArea().overlay(ProgressView())
+            } else {
+                tabs
+            }
         }
         .environment(authSession)
         .onOpenURL { url in
@@ -138,7 +145,7 @@ struct ContentView: View {
             // de ContentView → écrasait le changement de langue).
             authSession.bootstrap()
             SeedService.seedIfNeeded(context: modelContext)
-            EffectiveMonthBackfill.runIfNeeded(context: modelContext)
+            await EffectiveMonthBackfill.runIfNeeded(container: modelContext.container)
             RecurringCleanupService.purgeOrphanedLocalInstances(context: modelContext)
             // Le foyer ACTIF (local `isDefault`, persistant) pilote devise + langue, qu'on soit
             // hors ligne OU connecté : `bootstrap()` a posé celles du foyer cloud courant, mais le

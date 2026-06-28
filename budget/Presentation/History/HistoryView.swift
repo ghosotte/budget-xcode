@@ -26,8 +26,19 @@ struct HistoryView: View {
     @Query private var households: [Household]
     @Query(sort: \Category.sortOrder) private var categories: [Category]
     @Query(sort: \IncomeCategory.sortOrder) private var incomeCategories: [IncomeCategory]
+    // Borné à 24 mois : sans prédicat, ces `@Query` chargeaient TOUT l'historique en RAM (OOM) et
+    // étaient ré-itérés par mois × catégorie à chaque render. L'historique complet pour un compte
+    // authentifié passe par `remoteOverview` (agrégation serveur) ; ce `@Query` est le fallback offline.
     @Query private var expenses: [Expense]
     @Query private var incomeEntries: [IncomeEntry]
+
+    init() {
+        let start = Calendar.current.date(
+            byAdding: .month, value: -24, to: Calendar.current.startOfMonth(for: .now)
+        ) ?? .distantPast
+        _expenses = Query(filter: #Predicate<Expense> { $0.effectiveMonth >= start })
+        _incomeEntries = Query(filter: #Predicate<IncomeEntry> { $0.effectiveMonth >= start })
+    }
 
     @State private var tab = Tab.depenses
     @State private var fromDate: Date?
@@ -46,19 +57,10 @@ struct HistoryView: View {
     // MARK: — Calcul fromDate auto-détecté
 
     private var autoFromDate: Date {
+        // 12 mois par défaut. (On ne scanne plus toutes les lignes pour trouver la plus ancienne :
+        // ce scan chargeait tout l'historique. L'utilisateur peut élargir via le DatePicker, borné
+        // à la fenêtre du `@Query`.)
         let calendar = Calendar.current
-        let candidates: [Date] = {
-            switch tab {
-            case .depenses:
-                return expenses.filter { $0.household == household }.map(\.spentAt)
-            case .entrees:
-                return incomeEntries.filter { $0.household == household }.map(\.receivedAt)
-            }
-        }()
-        if let min = candidates.min() {
-            return calendar.startOfMonth(for: min)
-        }
-        // 12 mois par défaut si pas de data
         return calendar.date(byAdding: .month, value: -11, to: calendar.startOfMonth(for: .now)) ?? .now
     }
 

@@ -33,7 +33,7 @@ struct BilanView: View {
     }
 
     private var monthRealExpenses: [Expense] {
-        expenses.filter { $0.household == household && $0.effectiveMonth == month && $0.status == .real }
+        expenses.filter { $0.household == household && $0.status == .real }
     }
 
     private var totalBudgetExpenses: Decimal {
@@ -52,7 +52,7 @@ struct BilanView: View {
 
     private var totalRealIncome: Decimal {
         incomeEntries
-            .filter { $0.household == household && $0.effectiveMonth == month && $0.status == .real }
+            .filter { $0.household == household && $0.status == .real }
             .reduce(0) { $0 + $1.amount }
     }
 

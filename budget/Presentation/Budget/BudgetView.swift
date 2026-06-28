@@ -63,13 +63,13 @@ struct BudgetView: View {
 
     private var realExpensesTotal: Decimal {
         expenses
-            .filter { $0.household == household && $0.effectiveMonth == month && $0.status == .real }
+            .filter { $0.household == household && $0.status == .real }
             .reduce(0) { $0 + $1.amount }
     }
 
     private var realIncomeTotal: Decimal {
         incomeEntries
-            .filter { $0.household == household && $0.effectiveMonth == month && $0.status == .real }
+            .filter { $0.household == household && $0.status == .real }
             .reduce(0) { $0 + $1.amount }
     }
 
@@ -80,8 +80,7 @@ struct BudgetView: View {
     private func spent(for category: Category) -> Decimal {
         expenses
             .filter {
-                $0.household == household && $0.effectiveMonth == month
-                    && $0.status == .real && $0.category == category
+                $0.household == household && $0.status == .real && $0.category == category
             }
             .reduce(0) { $0 + $1.amount }
     }
