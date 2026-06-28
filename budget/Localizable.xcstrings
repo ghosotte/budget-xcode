@@ -293,6 +293,12 @@
         }
       }
     },
+    "Ajouter un revenu" : {
+
+    },
+    "Ajouter une dépense" : {
+
+    },
     "Ajouter une ligne" : {
       "localizations" : {
         "en" : {
@@ -1566,6 +1572,7 @@
       }
     },
     "Mensuelle" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1852,6 +1859,7 @@
       }
     },
     "Ponctuelle" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1932,6 +1940,7 @@
       }
     },
     "Réel" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2130,6 +2139,9 @@
           }
         }
       }
+    },
+    "Service indisponible, réessayez" : {
+
     },
     "Session expirée. Reconnecte-toi." : {
       "localizations" : {

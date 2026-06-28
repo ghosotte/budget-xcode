@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BudgetKit
 
 struct HouseholdSwitcherView: View {
     @Environment(\.dismiss) private var dismiss

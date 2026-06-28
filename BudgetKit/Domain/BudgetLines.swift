@@ -2,20 +2,20 @@ import Foundation
 import SwiftData
 
 @Model
-final class BudgetExpenseLine {
-    @Attribute(.unique) var id: UUID
-    @Attribute(.unique) var serverId: Int?
-    var household: Household?
-    var category: Category?
-    var subcategory: Subcategory?
-    var month: Date = Date.distantPast
-    var endMonth: Date?
-    var groupId: UUID = UUID()
-    var frequency: Frequency = Frequency.monthly
-    var amount: Decimal = 0
-    var syncStatus: SyncStatus = SyncStatus.local
+public final class BudgetExpenseLine {
+    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique) public var serverId: Int?
+    public var household: Household?
+    public var category: Category?
+    public var subcategory: Subcategory?
+    public var month: Date = Date.distantPast
+    public var endMonth: Date?
+    public var groupId: UUID = UUID()
+    public var frequency: Frequency = Frequency.monthly
+    public var amount: Decimal = 0
+    public var syncStatus: SyncStatus = SyncStatus.local
 
-    init(
+    public init(
         id: UUID = UUID(),
         serverId: Int? = nil,
         category: Category? = nil,
@@ -39,26 +39,26 @@ final class BudgetExpenseLine {
         self.syncStatus = syncStatus
     }
 
-    func isActive(for month: Date) -> Bool {
+    public func isActive(for month: Date) -> Bool {
         let m = Calendar.current.startOfMonth(for: month)
         return self.month <= m && (endMonth == nil || endMonth! >= m)
     }
 }
 
 @Model
-final class BudgetIncome {
-    @Attribute(.unique) var id: UUID
-    @Attribute(.unique) var serverId: Int?
-    var household: Household?
-    var incomeCategory: IncomeCategory?
-    var month: Date = Date.distantPast
-    var endMonth: Date?
-    var groupId: UUID = UUID()
-    var frequency: Frequency = Frequency.monthly
-    var amount: Decimal = 0
-    var syncStatus: SyncStatus = SyncStatus.local
+public final class BudgetIncome {
+    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique) public var serverId: Int?
+    public var household: Household?
+    public var incomeCategory: IncomeCategory?
+    public var month: Date = Date.distantPast
+    public var endMonth: Date?
+    public var groupId: UUID = UUID()
+    public var frequency: Frequency = Frequency.monthly
+    public var amount: Decimal = 0
+    public var syncStatus: SyncStatus = SyncStatus.local
 
-    init(
+    public init(
         id: UUID = UUID(),
         serverId: Int? = nil,
         incomeCategory: IncomeCategory? = nil,
@@ -80,7 +80,7 @@ final class BudgetIncome {
         self.syncStatus = syncStatus
     }
 
-    func isActive(for month: Date) -> Bool {
+    public func isActive(for month: Date) -> Bool {
         let m = Calendar.current.startOfMonth(for: month)
         return self.month <= m && (endMonth == nil || endMonth! >= m)
     }

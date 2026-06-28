@@ -1,10 +1,10 @@
 import Foundation
 import SwiftData
 
-enum SchemaV1: VersionedSchema {
-    static var versionIdentifier: Schema.Version { Schema.Version(1, 0, 0) }
+public enum SchemaV1: VersionedSchema {
+    public static var versionIdentifier: Schema.Version { Schema.Version(1, 0, 0) }
 
-    static var models: [any PersistentModel.Type] {
+    public static var models: [any PersistentModel.Type] {
         [
             Household.self,
             HouseholdMember.self,
@@ -20,7 +20,7 @@ enum SchemaV1: VersionedSchema {
     }
 }
 
-enum BudgetMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] { [SchemaV1.self] }
-    static var stages: [MigrationStage] { [] }
+public enum BudgetMigrationPlan: SchemaMigrationPlan {
+    public static var schemas: [any VersionedSchema.Type] { [SchemaV1.self] }
+    public static var stages: [MigrationStage] { [] }
 }

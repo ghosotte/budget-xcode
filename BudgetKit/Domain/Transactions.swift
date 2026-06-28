@@ -2,30 +2,30 @@ import Foundation
 import SwiftData
 
 @Model
-final class Expense {
-    @Attribute(.unique) var id: UUID
-    @Attribute(.unique) var serverId: Int?
-    var household: Household?
-    var category: Category?
-    var subcategory: Subcategory?
-    var amount: Decimal = 0
-    var label: String = ""
-    var spentAt: Date = Date.distantPast
-    var accountingMonth: Date?
-    var recurringTemplate: RecurringExpense?
-    var tags: [String] = []
-    var notes: String?
-    var createdAt: Date = Date.distantPast
-    var updatedAt: Date?
-    var syncStatus: SyncStatus = SyncStatus.local
+public final class Expense {
+    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique) public var serverId: Int?
+    public var household: Household?
+    public var category: Category?
+    public var subcategory: Subcategory?
+    public var amount: Decimal = 0
+    public var label: String = ""
+    public var spentAt: Date = Date.distantPast
+    public var accountingMonth: Date?
+    public var recurringTemplate: RecurringExpense?
+    public var tags: [String] = []
+    public var notes: String?
+    public var createdAt: Date = Date.distantPast
+    public var updatedAt: Date?
+    public var syncStatus: SyncStatus = SyncStatus.local
 
     /// Mois comptable dénormalisé (début de mois) = `accountingMonth ?? spentAt`. Stocké pour que
     /// les `@Query` filtrent côté SQLite par mois (perf mémoire) sans charger tout l'historique.
     /// Maintenu via `refreshEffectiveMonth()` à chaque écriture de `spentAt`/`accountingMonth`.
     /// Défaut `.distantPast` : backfill au cold start (voir `EffectiveMonthBackfill`).
-    var effectiveMonth: Date = Date.distantPast
+    public var effectiveMonth: Date = Date.distantPast
 
-    init(
+    public init(
         id: UUID = UUID(),
         serverId: Int? = nil,
         category: Category? = nil,
@@ -59,34 +59,34 @@ final class Expense {
     }
 
     /// Recalcule `effectiveMonth`. À appeler après toute mutation de `spentAt` ou `accountingMonth`.
-    func refreshEffectiveMonth() {
+    public func refreshEffectiveMonth() {
         effectiveMonth = Calendar.current.startOfMonth(for: accountingMonth ?? spentAt)
     }
 
-    var status: ExpenseStatus {
+    public var status: ExpenseStatus {
         spentAt < TransactionStatus.cutoff() ? .real : .planned
     }
 }
 
 @Model
-final class IncomeEntry {
-    @Attribute(.unique) var id: UUID
-    @Attribute(.unique) var serverId: Int?
-    var household: Household?
-    var incomeCategory: IncomeCategory?
-    var amount: Decimal = 0
-    var label: String = ""
-    var receivedAt: Date = Date.distantPast
-    var accountingMonth: Date?
-    var notes: String?
-    var createdAt: Date = Date.distantPast
-    var updatedAt: Date?
-    var syncStatus: SyncStatus = SyncStatus.local
+public final class IncomeEntry {
+    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique) public var serverId: Int?
+    public var household: Household?
+    public var incomeCategory: IncomeCategory?
+    public var amount: Decimal = 0
+    public var label: String = ""
+    public var receivedAt: Date = Date.distantPast
+    public var accountingMonth: Date?
+    public var notes: String?
+    public var createdAt: Date = Date.distantPast
+    public var updatedAt: Date?
+    public var syncStatus: SyncStatus = SyncStatus.local
 
     /// Mois comptable dénormalisé (début de mois) = `accountingMonth ?? receivedAt`. Voir `Expense.effectiveMonth`.
-    var effectiveMonth: Date = Date.distantPast
+    public var effectiveMonth: Date = Date.distantPast
 
-    init(
+    public init(
         id: UUID = UUID(),
         serverId: Int? = nil,
         incomeCategory: IncomeCategory? = nil,
@@ -114,38 +114,38 @@ final class IncomeEntry {
     }
 
     /// Recalcule `effectiveMonth`. À appeler après toute mutation de `receivedAt` ou `accountingMonth`.
-    func refreshEffectiveMonth() {
+    public func refreshEffectiveMonth() {
         effectiveMonth = Calendar.current.startOfMonth(for: accountingMonth ?? receivedAt)
     }
 
-    var status: ExpenseStatus {
+    public var status: ExpenseStatus {
         receivedAt < TransactionStatus.cutoff() ? .real : .planned
     }
 }
 
-enum TransactionStatus {
+public enum TransactionStatus {
     /// Start of tomorrow — boundary `date <= today → real`, `date > today → planned`.
-    static func cutoff(now: Date = .now) -> Date {
+    public static func cutoff(now: Date = .now) -> Date {
         let cal = Calendar.current
         return cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: now)) ?? now
     }
 }
 
 @Model
-final class RecurringExpense {
-    @Attribute(.unique) var id: UUID
-    @Attribute(.unique) var serverId: Int?
-    var household: Household?
-    var category: Category?
-    var subcategory: Subcategory?
-    var amount: Decimal = 0
-    var label: String = ""
-    var dayOfMonth: Int = 1
-    var isActive: Bool = true
-    var createdAt: Date = Date.distantPast
-    var syncStatus: SyncStatus = SyncStatus.local
+public final class RecurringExpense {
+    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique) public var serverId: Int?
+    public var household: Household?
+    public var category: Category?
+    public var subcategory: Subcategory?
+    public var amount: Decimal = 0
+    public var label: String = ""
+    public var dayOfMonth: Int = 1
+    public var isActive: Bool = true
+    public var createdAt: Date = Date.distantPast
+    public var syncStatus: SyncStatus = SyncStatus.local
 
-    init(
+    public init(
         id: UUID = UUID(),
         serverId: Int? = nil,
         category: Category? = nil,

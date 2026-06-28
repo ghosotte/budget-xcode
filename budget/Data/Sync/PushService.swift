@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import BudgetKit
 
 // MARK: — Tombstones de suppression
 
@@ -482,7 +483,7 @@ enum PushService {
     }
 
     static func createExpenseLineRemote(
-        category: Category, subcategory: Subcategory?, month: Date,
+        category: BudgetKit.Category, subcategory: Subcategory?, month: Date,
         frequency: Frequency, amount: Decimal
     ) async throws {
         guard let categoryId = category.serverId else { throw APIError.invalidResponse }

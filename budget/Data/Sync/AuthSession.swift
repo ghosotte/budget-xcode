@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import SwiftData
+import BudgetKit
 
 struct AuthUser: Codable, Equatable {
     let id: Int

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BudgetKit
 
 struct BudgetIncomeLineFormView: View {
     let month: Date

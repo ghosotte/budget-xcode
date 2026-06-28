@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BudgetKit
 
 struct IncomeFormView: View {
     @Environment(\.dismiss) private var dismiss

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BudgetKit
 
 struct HouseholdsView: View {
     @Environment(\.modelContext) private var modelContext

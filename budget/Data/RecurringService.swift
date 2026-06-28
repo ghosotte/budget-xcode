@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import BudgetKit
 
 /// iOS never generates recurring expenses — the backend is authoritative.
 /// Templates are stored locally but don't materialize into transactions.

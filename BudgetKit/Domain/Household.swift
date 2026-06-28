@@ -2,32 +2,32 @@ import Foundation
 import SwiftData
 
 @Model
-final class Household {
-    @Attribute(.unique) var id: UUID
-    @Attribute(.unique) var serverId: Int?
-    var ownerUserId: Int?
-    var isAnonymous: Bool = true
-    var isOrphan: Bool = false
-    var name: String = ""
-    var currencyCode: String = "EUR"
-    var locale: String = "fr"
-    var createdAt: Date = Date.distantPast
-    var isDefault: Bool = false
+public final class Household {
+    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique) public var serverId: Int?
+    public var ownerUserId: Int?
+    public var isAnonymous: Bool = true
+    public var isOrphan: Bool = false
+    public var name: String = ""
+    public var currencyCode: String = "EUR"
+    public var locale: String = "fr"
+    public var createdAt: Date = Date.distantPast
+    public var isDefault: Bool = false
 
     @Relationship(deleteRule: .cascade, inverse: \HouseholdMember.household)
-    var members: [HouseholdMember] = []
+    public var members: [HouseholdMember] = []
     @Relationship(deleteRule: .cascade, inverse: \Expense.household)
-    var expenses: [Expense] = []
+    public var expenses: [Expense] = []
     @Relationship(deleteRule: .cascade, inverse: \IncomeEntry.household)
-    var incomeEntries: [IncomeEntry] = []
+    public var incomeEntries: [IncomeEntry] = []
     @Relationship(deleteRule: .cascade, inverse: \BudgetExpenseLine.household)
-    var budgetExpenseLines: [BudgetExpenseLine] = []
+    public var budgetExpenseLines: [BudgetExpenseLine] = []
     @Relationship(deleteRule: .cascade, inverse: \BudgetIncome.household)
-    var budgetIncomes: [BudgetIncome] = []
+    public var budgetIncomes: [BudgetIncome] = []
     @Relationship(deleteRule: .cascade, inverse: \RecurringExpense.household)
-    var recurringExpenses: [RecurringExpense] = []
+    public var recurringExpenses: [RecurringExpense] = []
 
-    init(
+    public init(
         id: UUID = UUID(),
         serverId: Int? = nil,
         ownerUserId: Int? = nil,
@@ -51,15 +51,15 @@ final class Household {
 }
 
 @Model
-final class HouseholdMember {
-    var id: UUID
-    var household: Household?
-    var displayName: String = ""
-    var isMe: Bool = false
-    var joinedAt: Date = Date.distantPast
-    var serverUserId: Int?
+public final class HouseholdMember {
+    public var id: UUID
+    public var household: Household?
+    public var displayName: String = ""
+    public var isMe: Bool = false
+    public var joinedAt: Date = Date.distantPast
+    public var serverUserId: Int?
 
-    init(
+    public init(
         id: UUID = UUID(),
         displayName: String,
         isMe: Bool = false,

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BudgetKit
 
 enum TransactionFilter: String, CaseIterable {
     case all, expenses, incomes

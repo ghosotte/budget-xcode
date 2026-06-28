@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BudgetKit
 
 struct DashboardView: View {
     let onSeeAllExpenses: () -> Void
@@ -46,65 +47,27 @@ struct DashboardView: View {
         incomeEntries.filter { $0.household == household }
     }
 
-    private var realExpensesTotal: Decimal {
-        monthExpenses.filter { $0.status == .real }.reduce(0) { $0 + $1.amount }
+    // Soldes calculés par la logique partagée app ↔ widget (BalanceCalculator).
+    private var balance: BalanceResult {
+        BalanceCalculator.compute(
+            household: household,
+            month: currentMonth,
+            expenses: expenses,
+            incomes: incomeEntries,
+            budgetExpenseLines: budgetExpenseLines,
+            budgetIncomes: budgetIncomes
+        )
     }
 
-    private var realIncomeTotal: Decimal {
-        monthIncomes.filter { $0.status == .real }.reduce(0) { $0 + $1.amount }
-    }
-
-    private var plannedExpensesTotal: Decimal {
-        monthExpenses.filter { $0.status == .planned }.reduce(0) { $0 + $1.amount }
-    }
-
-    private var pendingIncomeTotal: Decimal {
-        monthIncomes.filter { $0.status == .planned }.reduce(0) { $0 + $1.amount }
-    }
-
-    private var budgetExpensesTotal: Decimal {
-        budgetExpenseLines
-            .filter { $0.household == household && $0.isActive(for: currentMonth) }
-            .reduce(0) { $0 + $1.amount }
-    }
-
-    private var budgetIncomeTotal: Decimal {
-        budgetIncomes
-            .filter { $0.household == household && $0.isActive(for: currentMonth) }
-            .reduce(0) { $0 + $1.amount }
-    }
-
-    private var currentBalance: Decimal {
-        realIncomeTotal - realExpensesTotal
-    }
-
-    // Dépenses prévisionnelles par catégorie : max(budget, réel) + réel non-budgété.
-    // Aligné sur le web (BudgetAppController::buildDashboardVars) — un sous-dépassement
-    // d'une catégorie ne compense pas le dépassement d'une autre.
-    private var projectedExpenses: Decimal {
-        let activeLines = budgetExpenseLines.filter { $0.household == household && $0.isActive(for: currentMonth) }
-        let budgetByCat = Dictionary(grouping: activeLines, by: \.category)
-            .mapValues { $0.reduce(Decimal(0)) { $0 + $1.amount } }
-        let realByCat = Dictionary(grouping: monthExpenses.filter { $0.status == .real }, by: \.category)
-            .mapValues { $0.reduce(Decimal(0)) { $0 + $1.amount } }
-
-        let allCategories = Set(budgetByCat.keys).union(realByCat.keys)
-        return allCategories.reduce(Decimal(0)) { total, category in
-            total + max(budgetByCat[category] ?? 0, realByCat[category] ?? 0)
-        }
-    }
-
-    private var projectedBalance: Decimal {
-        // Revenu prévu = config budget (inclut le budgété non encore encaissé),
-        // borné au réel+planifié si celui-ci dépasse le budget.
-        let projectedIncome = max(budgetIncomeTotal, realIncomeTotal + pendingIncomeTotal)
-        return projectedIncome - projectedExpenses
-    }
-
-    private var hasAnyData: Bool {
-        !monthExpenses.isEmpty || !monthIncomes.isEmpty
-            || budgetExpensesTotal > 0 || budgetIncomeTotal > 0
-    }
+    private var realExpensesTotal: Decimal { balance.realExpenses }
+    private var realIncomeTotal: Decimal { balance.realIncome }
+    private var plannedExpensesTotal: Decimal { balance.plannedExpenses }
+    private var pendingIncomeTotal: Decimal { balance.pendingIncome }
+    private var budgetExpensesTotal: Decimal { balance.budgetExpenses }
+    private var budgetIncomeTotal: Decimal { balance.budgetIncome }
+    private var currentBalance: Decimal { balance.current }
+    private var projectedBalance: Decimal { balance.projected }
+    private var hasAnyData: Bool { balance.hasAnyData }
 
     private var latestExpenses: [Expense] {
         let cutoff = TransactionStatus.cutoff()

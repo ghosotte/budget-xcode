@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BudgetKit
 
 struct RecurringFormView: View {
     private let template: RecurringExpense?

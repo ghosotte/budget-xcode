@@ -7,10 +7,51 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A4264E122FF1207900853023 /* BudgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4264E072FF1207900853023 /* BudgetKit.framework */; };
+		A4264E1C2FF1207900853023 /* BudgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4264E072FF1207900853023 /* BudgetKit.framework */; };
+		A4264E1D2FF1207900853023 /* BudgetKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A4264E072FF1207900853023 /* BudgetKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A4264E2C2FF120CA00853023 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4264E2B2FF120CA00853023 /* WidgetKit.framework */; };
+		A4264E2E2FF120CA00853023 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4264E2D2FF120CA00853023 /* SwiftUI.framework */; };
+		A4264E3B2FF120CB00853023 /* BudgetWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A4264E292FF120CA00853023 /* BudgetWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A48C2DB12FD30E390068D400 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A48C2DB32FD30E390068D400 /* GoogleSignIn */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		A4264E132FF1207900853023 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A48C2D732FD30E370068D400 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A4264E062FF1207900853023;
+			remoteInfo = BudgetKit;
+		};
+		A4264E152FF1207900853023 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A48C2D732FD30E370068D400 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A48C2D7A2FD30E370068D400;
+			remoteInfo = budget;
+		};
+		A4264E1A2FF1207900853023 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A48C2D732FD30E370068D400 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A4264E062FF1207900853023;
+			remoteInfo = BudgetKit;
+		};
+		A4264EAA2FF1207900853023 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A48C2D732FD30E370068D400 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A4264E062FF1207900853023;
+			remoteInfo = BudgetKit;
+		};
+		A4264E392FF120CB00853023 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A48C2D732FD30E370068D400 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A4264E282FF120CA00853023;
+			remoteInfo = BudgetWidgetExtension;
+		};
 		A48C2D902FD30E390068D400 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A48C2D732FD30E370068D400 /* Project object */;
@@ -27,13 +68,50 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		A4264E212FF1207900853023 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				A4264E1D2FF1207900853023 /* BudgetKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4264E402FF120CB00853023 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A4264E3B2FF120CB00853023 /* BudgetWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		A4264E072FF1207900853023 /* BudgetKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BudgetKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4264E112FF1207900853023 /* BudgetKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BudgetKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4264E292FF120CA00853023 /* BudgetWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BudgetWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4264E2B2FF120CA00853023 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		A4264E2D2FF120CA00853023 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		A48C2D7B2FD30E370068D400 /* budget.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = budget.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A48C2D8F2FD30E390068D400 /* budgetTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = budgetTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A48C2D992FD30E390068D400 /* budgetUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = budgetUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A4264E3F2FF120CB00853023 /* Exceptions for "BudgetWidget" folder in "BudgetWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A4264E282FF120CA00853023 /* BudgetWidgetExtension */;
+		};
 		A48C2DA12FD30E390068D400 /* Exceptions for "budget" folder in "budget" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -44,6 +122,24 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		A4264E082FF1207900853023 /* BudgetKit */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BudgetKit;
+			sourceTree = "<group>";
+		};
+		A4264E172FF1207900853023 /* BudgetKitTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BudgetKitTests;
+			sourceTree = "<group>";
+		};
+		A4264E2F2FF120CA00853023 /* BudgetWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A4264E3F2FF120CB00853023 /* Exceptions for "BudgetWidget" folder in "BudgetWidgetExtension" target */,
+			);
+			path = BudgetWidget;
+			sourceTree = "<group>";
+		};
 		A48C2D7D2FD30E370068D400 /* budget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -65,10 +161,35 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		A4264E042FF1207900853023 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4264E0E2FF1207900853023 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A4264E122FF1207900853023 /* BudgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4264E262FF120CA00853023 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A4264E2E2FF120CA00853023 /* SwiftUI.framework in Frameworks */,
+				A4264E2C2FF120CA00853023 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A48C2D782FD30E370068D400 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A4264E1C2FF1207900853023 /* BudgetKit.framework in Frameworks */,
 				A48C2DB12FD30E390068D400 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -90,12 +211,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A4264E2A2FF120CA00853023 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A4264E2B2FF120CA00853023 /* WidgetKit.framework */,
+				A4264E2D2FF120CA00853023 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		A48C2D722FD30E370068D400 = {
 			isa = PBXGroup;
 			children = (
 				A48C2D7D2FD30E370068D400 /* budget */,
 				A48C2D922FD30E390068D400 /* budgetTests */,
 				A48C2D9C2FD30E390068D400 /* budgetUITests */,
+				A4264E082FF1207900853023 /* BudgetKit */,
+				A4264E172FF1207900853023 /* BudgetKitTests */,
+				A4264E2F2FF120CA00853023 /* BudgetWidget */,
+				A4264E2A2FF120CA00853023 /* Frameworks */,
 				A48C2D7C2FD30E370068D400 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -106,13 +240,96 @@
 				A48C2D7B2FD30E370068D400 /* budget.app */,
 				A48C2D8F2FD30E390068D400 /* budgetTests.xctest */,
 				A48C2D992FD30E390068D400 /* budgetUITests.xctest */,
+				A4264E072FF1207900853023 /* BudgetKit.framework */,
+				A4264E112FF1207900853023 /* BudgetKitTests.xctest */,
+				A4264E292FF120CA00853023 /* BudgetWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		A4264E022FF1207900853023 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
+		A4264E062FF1207900853023 /* BudgetKit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A4264E1E2FF1207900853023 /* Build configuration list for PBXNativeTarget "BudgetKit" */;
+			buildPhases = (
+				A4264E022FF1207900853023 /* Headers */,
+				A4264E032FF1207900853023 /* Sources */,
+				A4264E042FF1207900853023 /* Frameworks */,
+				A4264E052FF1207900853023 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A4264E082FF1207900853023 /* BudgetKit */,
+			);
+			name = BudgetKit;
+			packageProductDependencies = (
+			);
+			productName = BudgetKit;
+			productReference = A4264E072FF1207900853023 /* BudgetKit.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		A4264E102FF1207900853023 /* BudgetKitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A4264E222FF1207900853023 /* Build configuration list for PBXNativeTarget "BudgetKitTests" */;
+			buildPhases = (
+				A4264E0D2FF1207900853023 /* Sources */,
+				A4264E0E2FF1207900853023 /* Frameworks */,
+				A4264E0F2FF1207900853023 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A4264E142FF1207900853023 /* PBXTargetDependency */,
+				A4264E162FF1207900853023 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A4264E172FF1207900853023 /* BudgetKitTests */,
+			);
+			name = BudgetKitTests;
+			packageProductDependencies = (
+			);
+			productName = BudgetKitTests;
+			productReference = A4264E112FF1207900853023 /* BudgetKitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		A4264E282FF120CA00853023 /* BudgetWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A4264E3C2FF120CB00853023 /* Build configuration list for PBXNativeTarget "BudgetWidgetExtension" */;
+			buildPhases = (
+				A4264E252FF120CA00853023 /* Sources */,
+				A4264E262FF120CA00853023 /* Frameworks */,
+				A4264E272FF120CA00853023 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A4264EAB2FF1207900853023 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A4264E2F2FF120CA00853023 /* BudgetWidget */,
+			);
+			name = BudgetWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = BudgetWidgetExtension;
+			productReference = A4264E292FF120CA00853023 /* BudgetWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		A48C2D7A2FD30E370068D400 /* budget */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A48C2DA22FD30E390068D400 /* Build configuration list for PBXNativeTarget "budget" */;
@@ -120,10 +337,14 @@
 				A48C2D772FD30E370068D400 /* Sources */,
 				A48C2D782FD30E370068D400 /* Frameworks */,
 				A48C2D792FD30E370068D400 /* Resources */,
+				A4264E212FF1207900853023 /* Embed Frameworks */,
+				A4264E402FF120CB00853023 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A4264E1B2FF1207900853023 /* PBXTargetDependency */,
+				A4264E3A2FF120CB00853023 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A48C2D7D2FD30E370068D400 /* budget */,
@@ -192,6 +413,16 @@
 				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 2630;
 				TargetAttributes = {
+					A4264E062FF1207900853023 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					A4264E102FF1207900853023 = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = A48C2D7A2FD30E370068D400;
+					};
+					A4264E282FF120CA00853023 = {
+						CreatedOnToolsVersion = 26.3;
+					};
 					A48C2D7A2FD30E370068D400 = {
 						CreatedOnToolsVersion = 26.3;
 					};
@@ -226,11 +457,35 @@
 				A48C2D7A2FD30E370068D400 /* budget */,
 				A48C2D8E2FD30E390068D400 /* budgetTests */,
 				A48C2D982FD30E390068D400 /* budgetUITests */,
+				A4264E062FF1207900853023 /* BudgetKit */,
+				A4264E102FF1207900853023 /* BudgetKitTests */,
+				A4264E282FF120CA00853023 /* BudgetWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		A4264E052FF1207900853023 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4264E0F2FF1207900853023 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4264E272FF120CA00853023 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A48C2D792FD30E370068D400 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -255,6 +510,27 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A4264E032FF1207900853023 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4264E0D2FF1207900853023 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4264E252FF120CA00853023 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A48C2D772FD30E370068D400 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -279,6 +555,31 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		A4264E142FF1207900853023 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A4264E062FF1207900853023 /* BudgetKit */;
+			targetProxy = A4264E132FF1207900853023 /* PBXContainerItemProxy */;
+		};
+		A4264E162FF1207900853023 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A48C2D7A2FD30E370068D400 /* budget */;
+			targetProxy = A4264E152FF1207900853023 /* PBXContainerItemProxy */;
+		};
+		A4264E1B2FF1207900853023 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A4264E062FF1207900853023 /* BudgetKit */;
+			targetProxy = A4264E1A2FF1207900853023 /* PBXContainerItemProxy */;
+		};
+		A4264EAB2FF1207900853023 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A4264E062FF1207900853023 /* BudgetKit */;
+			targetProxy = A4264EAA2FF1207900853023 /* PBXContainerItemProxy */;
+		};
+		A4264E3A2FF120CB00853023 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A4264E282FF120CA00853023 /* BudgetWidgetExtension */;
+			targetProxy = A4264E392FF120CB00853023 /* PBXContainerItemProxy */;
+		};
 		A48C2D912FD30E390068D400 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = A48C2D7A2FD30E370068D400 /* budget */;
@@ -292,6 +593,190 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		A4264E1F2FF1207900853023 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X6UV5CF68N;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = guilhemhosotte.BudgetKit;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		A4264E202FF1207900853023 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X6UV5CF68N;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = guilhemhosotte.BudgetKit;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		A4264E232FF1207900853023 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X6UV5CF68N;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = guilhemhosotte.BudgetKitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/budget.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/budget";
+			};
+			name = Debug;
+		};
+		A4264E242FF1207900853023 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X6UV5CF68N;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = guilhemhosotte.BudgetKitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/budget.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/budget";
+			};
+			name = Release;
+		};
+		A4264E3D2FF120CB00853023 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = BudgetWidget/BudgetWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X6UV5CF68N;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BudgetWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = BudgetWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.guilhemhosotte.budget.BudgetWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A4264E3E2FF120CB00853023 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = BudgetWidget/BudgetWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X6UV5CF68N;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BudgetWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = BudgetWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.guilhemhosotte.budget.BudgetWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		A48C2DA32FD30E390068D400 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -570,6 +1055,33 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		A4264E1E2FF1207900853023 /* Build configuration list for PBXNativeTarget "BudgetKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4264E1F2FF1207900853023 /* Debug */,
+				A4264E202FF1207900853023 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4264E222FF1207900853023 /* Build configuration list for PBXNativeTarget "BudgetKitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4264E232FF1207900853023 /* Debug */,
+				A4264E242FF1207900853023 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4264E3C2FF120CB00853023 /* Build configuration list for PBXNativeTarget "BudgetWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4264E3D2FF120CB00853023 /* Debug */,
+				A4264E3E2FF120CB00853023 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		A48C2D762FD30E370068D400 /* Build configuration list for PBXProject "budget" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

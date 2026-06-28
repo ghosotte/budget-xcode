@@ -1,4 +1,5 @@
 import Foundation
+import BudgetKit
 
 /// Recherche globale de transactions côté serveur (FULLTEXT + filtres), scope foyer connecté.
 /// Contrat : `GET /budget/transactions/search` — même envelope que les autres routes mobiles

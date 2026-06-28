@@ -2,58 +2,58 @@ import Foundation
 
 /// Devise active de l'app, pilotée par le foyer courant. Source de vérité = UserDefaults
 /// (`currencyCode`), poussée depuis AuthSession (foyer cloud) ou le foyer local par défaut.
-enum Currency {
-    static let storageKey = "currencyCode"
-    static let `default` = "EUR"
+public enum Currency {
+    public static let storageKey = "currencyCode"
+    public static let `default` = "EUR"
 
     /// Codes ISO 4217 supportés — doit rester aligné avec `Household::SUPPORTED_CURRENCIES` côté backend.
-    static let supported = ["EUR", "USD", "GBP", "CHF", "CAD", "JPY"]
+    public static let supported = ["EUR", "USD", "GBP", "CHF", "CAD", "JPY"]
 
     private static let symbols: [String: String] = [
         "EUR": "€", "USD": "$", "GBP": "£", "CHF": "CHF", "CAD": "$", "JPY": "¥",
     ]
 
-    static func symbol(for code: String) -> String { symbols[code] ?? code }
+    public static func symbol(for code: String) -> String { symbols[code] ?? code }
 
-    static func label(for code: String) -> String { "\(code) (\(symbol(for: code)))" }
+    public static func label(for code: String) -> String { "\(code) (\(symbol(for: code)))" }
 
     // Cache mémoire : `activeCode` était lu sur UserDefaults à chaque appel (par ligne × render ×
     // formatter → des centaines de lectures au cold start). `setActive` est le seul mutateur.
     private static var cachedCode: String?
 
-    static var activeCode: String {
+    public static var activeCode: String {
         if let cachedCode { return cachedCode }
         let code = UserDefaults.standard.string(forKey: storageKey) ?? `default`
         cachedCode = code
         return code
     }
 
-    static func setActive(_ code: String) {
+    public static func setActive(_ code: String) {
         UserDefaults.standard.set(code, forKey: storageKey)
         cachedCode = code
     }
 
     /// Devise déduite de la région système, ramenée aux codes supportés (repli `default`).
-    static func systemDefault() -> String {
+    public static func systemDefault() -> String {
         let code = Locale.current.currency?.identifier ?? `default`
         return supported.contains(code) ? code : `default`
     }
 }
 
 /// Langue d'un foyer (catégories + libellés serveur). Codes alignés avec `Household::SUPPORTED_LOCALES`.
-enum AppLocale {
-    static let storageKey = "householdLocale"
-    static let `default` = "fr"
-    static let supported = ["fr", "en"]
+public enum AppLocale {
+    public static let storageKey = "householdLocale"
+    public static let `default` = "fr"
+    public static let supported = ["fr", "en"]
 
     private static let labels: [String: String] = ["fr": "Français", "en": "English"]
 
-    static func label(for code: String) -> String { labels[code] ?? code }
+    public static func label(for code: String) -> String { labels[code] ?? code }
 
     /// Locale de formatage (dates, nombres) déduite de la langue active du foyer.
     /// On suit la langue, pas la région système : foyer en anglais → format US,
     /// foyer en français → format FR. Le symbole monétaire reste piloté par `Currency`.
-    static var formattingLocale: Locale {
+    public static var formattingLocale: Locale {
         switch activeCode {
         case "en": return Locale(identifier: "en_US")
         default:   return Locale(identifier: "fr_FR")
@@ -65,14 +65,14 @@ enum AppLocale {
     private static var cachedCode: String?
 
     /// Langue du foyer courant. Source de vérité = UserDefaults, poussée comme `Currency.setActive`.
-    static var activeCode: String {
+    public static var activeCode: String {
         if let cachedCode { return cachedCode }
         let code = UserDefaults.standard.string(forKey: storageKey) ?? `default`
         cachedCode = code
         return code
     }
 
-    static func setActive(_ code: String, caller: String = #function, file: String = #fileID, line: Int = #line) {
+    public static func setActive(_ code: String, caller: String = #function, file: String = #fileID, line: Int = #line) {
         let changed = code != activeCode
         UserDefaults.standard.set(code, forKey: storageKey)
         cachedCode = code
@@ -83,16 +83,16 @@ enum AppLocale {
     }
 
     /// Langue système ramenée aux locales supportées (repli `default`).
-    static func systemDefault() -> String {
+    public static func systemDefault() -> String {
         let code = Locale.preferredLanguages.first
             .flatMap { Locale(identifier: $0).language.languageCode?.identifier }
         return code.map { supported.contains($0) ? $0 : `default` } ?? `default`
     }
 }
 
-enum AmountFormatter {
+public enum AmountFormatter {
 
-    static var currencySymbol: String {
+    public static var currencySymbol: String {
         Currency.symbol(for: Currency.activeCode)
     }
 
@@ -112,14 +112,14 @@ enum AmountFormatter {
         return f
     }
 
-    static func kpi(_ amount: Decimal, signed: Bool = false) -> String {
+    public static func kpi(_ amount: Decimal, signed: Bool = false) -> String {
         let number = NSDecimalNumber(decimal: amount)
         let text = formatter(fractionDigits: 0).string(from: number) ?? "0"
         let sign = signed && amount > 0 ? "+" : ""
         return "\(sign)\(text) \(currencySymbol)"
     }
 
-    static func full(_ amount: Decimal, signed: Bool = false) -> String {
+    public static func full(_ amount: Decimal, signed: Bool = false) -> String {
         let number = NSDecimalNumber(decimal: amount)
         let text = formatter(fractionDigits: 2).string(from: number) ?? "0"
         let sign = signed && amount > 0 ? "+" : ""
@@ -127,7 +127,7 @@ enum AmountFormatter {
     }
 }
 
-enum AppDateFormatter {
+public enum AppDateFormatter {
 
     /// Cache des formatters par couple (langue, format). Reconstruit à la volée quand la
     /// langue du foyer change : les noms de mois / jours suivent alors la langue active.
@@ -143,15 +143,15 @@ enum AppDateFormatter {
         return f
     }
 
-    static func dayMonth(_ date: Date) -> String {
+    public static func dayMonth(_ date: Date) -> String {
         formatter("dd/MM").string(from: date)
     }
 
-    static func monthYear(_ date: Date) -> String {
+    public static func monthYear(_ date: Date) -> String {
         formatter("LLLL yyyy").string(from: date).capitalized
     }
 
-    static func daySection(_ date: Date) -> String {
+    public static func daySection(_ date: Date) -> String {
         formatter("EEEE d MMMM").string(from: date).capitalized
     }
 }

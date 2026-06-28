@@ -12,6 +12,14 @@
 				<string>com.googleusercontent.apps.121213499962-k5r7nvfcamgusvotj0dftdhhrp42rp68</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.guilhemhosotte.budget.deeplink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>budget</string>
+			</array>
+		</dict>
 	</array>
 	<key>GIDClientID</key>
 	<string>121213499962-k5r7nvfcamgusvotj0dftdhhrp42rp68.apps.googleusercontent.com</string>

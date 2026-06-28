@@ -1,6 +1,8 @@
 import GoogleSignIn
 import SwiftUI
 import SwiftData
+import WidgetKit
+import BudgetKit
 
 enum AppTab: Hashable {
     case home, transactions, budget, history, settings
@@ -48,6 +50,7 @@ struct ContentView: View {
     @State private var formKind: TransactionFormKind?
     @State private var transactionsFilter = TransactionFilter.all
     @State private var inviteAlert: InviteAlert?
+    @State private var quickActions = QuickActionRouter.shared
 
     /// Résultat (succès / erreur) de l'acceptation d'une invitation reçue via Universal Link.
     struct InviteAlert: Identifiable {
@@ -60,6 +63,14 @@ struct ContentView: View {
     /// filtré sur les revenus, sinon dépense.
     private var defaultFormKind: TransactionFormKind {
         selectedTab == .transactions && transactionsFilter == .incomes ? .income : .expense
+    }
+
+    /// Ouvre le formulaire d'ajout demandé par une action rapide (long-press, Siri, Spotlight).
+    private func presentQuickAction(_ kind: TransactionFormKind?) {
+        guard let kind else { return }
+        selectedTab = .home
+        formKind = kind
+        quickActions.pending = nil
     }
 
     private var tabs: some View {
@@ -122,7 +133,23 @@ struct ContentView: View {
             }
         }
         .environment(authSession)
+        .onChange(of: quickActions.pending) { _, kind in
+            presentQuickAction(kind)
+        }
+        .task {
+            // Cold launch via action rapide : l'intent a pu écrire `pending` avant l'apparition de la vue.
+            presentQuickAction(quickActions.pending)
+        }
         .onOpenURL { url in
+            // Deep-link action rapide (boutons du widget) : budget://add/expense | budget://add/income.
+            if url.scheme == "budget", url.host == "add" {
+                switch url.lastPathComponent {
+                case "expense": presentQuickAction(.expense)
+                case "income":  presentQuickAction(.income)
+                default: break
+                }
+                return
+            }
             // Universal Link d'invitation : https://budget.theapp.fr/invite/{token}.
             // Tout le reste (callback Google Sign-In, schéma custom) repart vers GoogleSignIn.
             if let token = inviteToken(from: url) {
@@ -182,6 +209,10 @@ struct ContentView: View {
             }
         }
         .onChange(of: scenePhase) { _, phase in
+            // Quitter l'app → rafraîchir les widgets avec l'état local le plus récent (saisies in-app).
+            if phase == .background {
+                WidgetCenter.shared.reloadAllTimelines()
+            }
             guard phase == .active, authSession.isAuthenticated else { return }
             let lastSync = UserDefaults.standard.double(forKey: "lastSyncAt")
             guard Date.now.timeIntervalSince1970 - lastSync > 60 else { return }
@@ -192,6 +223,8 @@ struct ContentView: View {
                         Calendar.current.startOfMonth(for: .now),
                         session: authSession, context: modelContext, force: true
                     )
+                    // Données potentiellement modifiées par la sync → mettre les widgets à jour.
+                    WidgetCenter.shared.reloadAllTimelines()
                 } catch {
                     SyncErrorReporter.report(error, context: "ContentView.scenePhase.active")
                 }

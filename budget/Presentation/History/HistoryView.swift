@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Charts
+import BudgetKit
 
 struct HistoryView: View {
     enum Tab: String, CaseIterable, Identifiable {

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BudgetKit
 
 /// Recherche globale de transactions. Présentée en plein écran depuis le Dashboard.
 /// Débounce la frappe, filtre par type/statut/montant/date, pagine par offset.

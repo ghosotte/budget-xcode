@@ -2,25 +2,25 @@ import Foundation
 import SwiftData
 
 @Model
-final class Category {
-    @Attribute(.unique) var id: UUID
-    @Attribute(.unique) var serverId: Int?
-    var name: String = ""
-    var nameEn: String?
-    var emoji: String = ""
-    var sortOrder: Int = 0
-    var isActive: Bool = true
-    var isSystem: Bool = false
+public final class Category {
+    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique) public var serverId: Int?
+    public var name: String = ""
+    public var nameEn: String?
+    public var emoji: String = ""
+    public var sortOrder: Int = 0
+    public var isActive: Bool = true
+    public var isSystem: Bool = false
 
     @Relationship(deleteRule: .cascade, inverse: \Subcategory.category)
-    var subcategories: [Subcategory] = []
+    public var subcategories: [Subcategory] = []
 
     /// Nom affiché selon la langue du foyer courant. Repli FR si pas de traduction.
-    var displayName: String {
+    public var displayName: String {
         AppLocale.activeCode == "en" ? (nameEn ?? name) : name
     }
 
-    init(
+    public init(
         id: UUID = UUID(),
         serverId: Int? = nil,
         name: String,
@@ -42,21 +42,21 @@ final class Category {
 }
 
 @Model
-final class Subcategory {
-    @Attribute(.unique) var id: UUID
-    @Attribute(.unique) var serverId: Int?
-    var category: Category?
-    var name: String = ""
-    var nameEn: String?
-    var emoji: String = ""
-    var sortOrder: Int = 0
-    var isSystem: Bool = false
+public final class Subcategory {
+    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique) public var serverId: Int?
+    public var category: Category?
+    public var name: String = ""
+    public var nameEn: String?
+    public var emoji: String = ""
+    public var sortOrder: Int = 0
+    public var isSystem: Bool = false
 
-    var displayName: String {
+    public var displayName: String {
         AppLocale.activeCode == "en" ? (nameEn ?? name) : name
     }
 
-    init(
+    public init(
         id: UUID = UUID(),
         serverId: Int? = nil,
         name: String,
@@ -76,20 +76,20 @@ final class Subcategory {
 }
 
 @Model
-final class IncomeCategory {
-    @Attribute(.unique) var id: UUID
-    @Attribute(.unique) var serverId: Int?
-    var name: String = ""
-    var nameEn: String?
-    var emoji: String = ""
-    var sortOrder: Int = 0
-    var isSystem: Bool = false
+public final class IncomeCategory {
+    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique) public var serverId: Int?
+    public var name: String = ""
+    public var nameEn: String?
+    public var emoji: String = ""
+    public var sortOrder: Int = 0
+    public var isSystem: Bool = false
 
-    var displayName: String {
+    public var displayName: String {
         AppLocale.activeCode == "en" ? (nameEn ?? name) : name
     }
 
-    init(
+    public init(
         id: UUID = UUID(),
         serverId: Int? = nil,
         name: String,

@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import BudgetKit
 
 extension Color {
     static let budgetBg           = Color(light: "#FAFAF8", dark: "#141413")

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BudgetKit
 
 struct SettingsView: View {
     @AppStorage("appTheme") private var themeRaw = AppTheme.system.rawValue

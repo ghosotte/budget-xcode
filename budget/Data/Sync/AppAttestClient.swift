@@ -4,12 +4,15 @@ import Foundation
 
 enum AppAttestError: LocalizedError {
     case unsupported
+    case serviceUnavailable
     case serverRejected(String)
 
     var errorDescription: String? {
         switch self {
         case .unsupported:
             return NSLocalizedString("App Attest n'est pas disponible sur cet appareil.", comment: "")
+        case .serviceUnavailable:
+            return NSLocalizedString("Service indisponible, réessayez", comment: "")
         case .serverRejected(let message):
             return message
         }
@@ -33,9 +36,16 @@ final class AppAttestClient: Sendable {
         guard DCAppAttestService.shared.isSupported else { throw AppAttestError.unsupported }
 
         let challenge = try await fetchChallenge()
-        let keyId = try await DCAppAttestService.shared.generateKey()
-        let clientDataHash = Data(SHA256.hash(data: Data(challenge.utf8)))
-        let attestation = try await DCAppAttestService.shared.attestKey(keyId, clientDataHash: clientDataHash)
+        let keyId: String
+        let attestation: Data
+        do {
+            keyId = try await DCAppAttestService.shared.generateKey()
+            let clientDataHash = Data(SHA256.hash(data: Data(challenge.utf8)))
+            attestation = try await DCAppAttestService.shared.attestKey(keyId, clientDataHash: clientDataHash)
+        } catch let error as DCError where error.code == .serverUnavailable {
+            // Serveur d'attestation Apple injoignable — transitoire.
+            throw AppAttestError.serviceUnavailable
+        }
 
         try await registerAttestation(keyId: keyId, attestation: attestation, challenge: challenge)
 
@@ -72,6 +82,9 @@ final class AppAttestClient: Sendable {
             reset()
             try await ensureAttested()
             return try await buildAssertionHeaders(method: method, path: path, query: query, body: body, allowRetry: false)
+        } catch let error as DCError where error.code == .serverUnavailable {
+            // Serveur d'attestation Apple injoignable — transitoire.
+            throw AppAttestError.serviceUnavailable
         }
     }
 

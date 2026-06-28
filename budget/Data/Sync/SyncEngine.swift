@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import BudgetKit
 
 /// Exécute les pulls lourds (transactions, budget, catégories, récurrents) sur un contexte SwiftData
 /// **background** au lieu du MainActor. Avant, ces upserts (20-35KB → centaines de lignes) tournaient

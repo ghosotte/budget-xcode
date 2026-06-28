@@ -3,8 +3,8 @@ import Foundation
 /// Centralized month/day arithmetic that uses a fixed gregorian calendar in UTC,
 /// so that month boundaries are stable across timezones and DST shifts.
 /// All server payloads use Y-m-d / Y-m strings in UTC convention.
-enum MonthMath {
-    static let calendar: Calendar = {
+public enum MonthMath {
+    public static let calendar: Calendar = {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "UTC") ?? .gmt
         return cal
@@ -26,25 +26,24 @@ enum MonthMath {
         return f
     }()
 
-    static func startOfMonth(for date: Date) -> Date {
+    public static func startOfMonth(for date: Date) -> Date {
         let components = calendar.dateComponents([.year, .month], from: date)
         return calendar.date(from: components) ?? date
     }
 
-    static func parseMonth(_ raw: String) -> Date? {
+    public static func parseMonth(_ raw: String) -> Date? {
         monthFormatter.date(from: raw)
     }
 
-    static func parseDate(_ raw: String) -> Date? {
+    public static func parseDate(_ raw: String) -> Date? {
         dayFormatter.date(from: raw)
     }
 
-    static func monthString(_ date: Date) -> String {
+    public static func monthString(_ date: Date) -> String {
         monthFormatter.string(from: date)
     }
 
-    static func dayString(_ date: Date) -> String {
+    public static func dayString(_ date: Date) -> String {
         dayFormatter.string(from: date)
     }
 }
-

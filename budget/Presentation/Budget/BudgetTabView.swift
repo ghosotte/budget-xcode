@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BudgetKit
 
 struct BudgetTabView: View {
     enum Mode: String, CaseIterable {

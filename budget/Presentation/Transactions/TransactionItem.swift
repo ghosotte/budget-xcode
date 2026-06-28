@@ -1,4 +1,5 @@
 import Foundation
+import BudgetKit
 
 enum TransactionItem: Identifiable {
     case expense(Expense)

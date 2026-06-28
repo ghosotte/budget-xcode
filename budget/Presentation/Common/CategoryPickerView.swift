@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BudgetKit
 
 /// Sélecteur de catégorie / sous-catégorie en une seule fenêtre.
 ///

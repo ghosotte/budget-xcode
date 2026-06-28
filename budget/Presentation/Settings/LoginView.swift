@@ -3,6 +3,7 @@ import GoogleSignIn
 import SwiftData
 import SwiftUI
 import UIKit
+import BudgetKit
 
 struct LoginView: View {
     private enum Mode: String, CaseIterable {

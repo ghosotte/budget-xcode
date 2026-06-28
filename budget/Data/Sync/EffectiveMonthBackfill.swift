@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import BudgetKit
 
 /// Backfill unique de `Expense.effectiveMonth` / `IncomeEntry.effectiveMonth` pour les lignes créées
 /// avant que la propriété ne soit stockée (migration légère les a posées à `.distantPast`).

@@ -8,8 +8,8 @@ import Observation
 /// `NSLocalizedString`, `String(localized:)`) passe alors par le `.lproj` de la langue choisie.
 private var bundleLanguageKey: UInt8 = 0
 
-final class LocalizedBundle: Bundle, @unchecked Sendable {
-    override func localizedString(forKey key: String, value: String?, table: String?) -> String {
+public final class LocalizedBundle: Bundle, @unchecked Sendable {
+    public override func localizedString(forKey key: String, value: String?, table: String?) -> String {
         guard let path = objc_getAssociatedObject(self, &bundleLanguageKey) as? String,
               let bundle = Bundle(path: path) else {
             return super.localizedString(forKey: key, value: value, table: table)
@@ -18,13 +18,13 @@ final class LocalizedBundle: Bundle, @unchecked Sendable {
     }
 }
 
-enum BundleLanguage {
+public enum BundleLanguage {
     /// Notification postée à chaque changement de langue (déclenche le re-render SwiftUI).
-    static let didChange = Notification.Name("BundleLanguageDidChange")
+    public static let didChange = Notification.Name("BundleLanguageDidChange")
 
     /// Bascule la résolution de chaînes vers la langue donnée. Repli sur le bundle système
     /// si le `.lproj` est absent (langue non embarquée).
-    static func set(_ code: String) {
+    public static func set(_ code: String) {
         object_setClass(Bundle.main, LocalizedBundle.self)
         let path = Bundle.main.path(forResource: code, ofType: "lproj")
         objc_setAssociatedObject(Bundle.main, &bundleLanguageKey, path, .OBJC_ASSOCIATION_RETAIN)
@@ -35,13 +35,13 @@ enum BundleLanguage {
 /// reconstruction de l'arbre de vues quand la langue change (switch live).
 @Observable
 @MainActor
-final class LanguageStore {
-    private(set) var code: String
+public final class LanguageStore {
+    public private(set) var code: String
     // nonisolated(unsafe) required: deinit is nonisolated, NotificationCenter.removeObserver is thread-safe,
     // and the property is written once in init before any concurrent access is possible.
     nonisolated(unsafe) private var languageObserver: NSObjectProtocol?
 
-    init() {
+    public init() {
         code = AppLocale.activeCode
         BundleLanguage.set(code)
         languageObserver = NotificationCenter.default.addObserver(
